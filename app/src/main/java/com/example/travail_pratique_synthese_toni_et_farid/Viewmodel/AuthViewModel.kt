@@ -64,6 +64,7 @@ class AuthViewModel : ViewModel() {
         if (utilisateur != null) {
             val utilisateurModifie = utilisateur.copy(langue = nouvelleLangue)
             _uiState.value = etatActuel.copy(utilisateurConnecte = utilisateurModifie)
+
         }
     }
 }
