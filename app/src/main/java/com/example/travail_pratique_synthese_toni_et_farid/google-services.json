@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "189412880346",
+    "project_id": "tp-synthese-toni-et-farid",
+    "storage_bucket": "tp-synthese-toni-et-farid.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:189412880346:android:7c4a49b0233f52daa89ae3",
+        "android_client_info": {
+          "package_name": "com.example.travail_pratique_synthese_toni_et_farid"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCG73cv5-pJxalIEGMQ_st_N35PRuNtodk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
