@@ -19,5 +19,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "TPSynthèse"
+rootProject.name = "TP_Synthese_Toni_Farid"
 include(":app")
