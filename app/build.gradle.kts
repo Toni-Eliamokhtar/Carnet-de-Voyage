@@ -5,11 +5,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.tpsynthse"
+    namespace = "com.example.travail_pratique_synthese_toni_et_farid"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.example.tpsynthse"
+        applicationId = "com.example.travail_pratique_synthese_toni_et_farid"
         minSdk = 24
         targetSdk = 36
         versionCode = 1

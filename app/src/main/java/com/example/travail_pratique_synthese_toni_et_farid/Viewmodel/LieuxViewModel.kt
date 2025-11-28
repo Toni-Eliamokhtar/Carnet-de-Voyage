@@ -1,4 +1,4 @@
-package com.example.tpsynthse.viewmodel
+package com.example.travail_pratique_synthese_toni_et_farid.Viewmodel
 
 import androidx.lifecycle.ViewModel
 
