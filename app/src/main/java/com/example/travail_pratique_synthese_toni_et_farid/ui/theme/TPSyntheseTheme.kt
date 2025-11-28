@@ -30,4 +30,5 @@ fun TPSyntheseTheme(
         typography = Typography,
         content = content
     )
+
 }
