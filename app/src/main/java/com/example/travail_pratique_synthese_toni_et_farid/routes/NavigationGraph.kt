@@ -8,6 +8,7 @@ import androidx.navigation.compose.composable
 import com.example.travail_pratique_synthese_toni_et_farid.Viewmodel.AuthViewModel
 import com.example.travail_pratique_synthese_toni_et_farid.ecrans.EcranAccueil
 import com.example.travail_pratique_synthese_toni_et_farid.ecrans.EcranConnexion
+import com.example.travail_pratique_synthese_toni_et_farid.ecrans.EcranListeLieux
 
 @Composable
 fun NavigationGraph(
@@ -31,5 +32,9 @@ fun NavigationGraph(
                 viewModel = authViewModel
             )
         }
+        composable(Routes.ListeLieux.route) {
+            EcranListeLieux(navController = navController)
+        }
+
     }
 }
