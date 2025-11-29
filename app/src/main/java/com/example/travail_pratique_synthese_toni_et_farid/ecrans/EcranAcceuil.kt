@@ -32,6 +32,17 @@ fun EcranAccueil(
 
         Button(
             onClick = {
+                navController.navigate(Routes.ListeLieux.route)
+            },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Voir les lieux")
+        }
+
+        Spacer(Modifier.height(16.dp))
+
+        Button(
+            onClick = {
                 viewModel.deconnexion()
                 navController.navigate(Routes.Connexion.route) {
                     popUpTo(Routes.Accueil.route) { inclusive = true }
@@ -42,4 +53,5 @@ fun EcranAccueil(
             Text("Se déconnecter")
         }
     }
+
 }
