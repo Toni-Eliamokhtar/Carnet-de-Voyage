@@ -1,9 +1,12 @@
 package com.example.travail_pratique_synthese_toni_et_farid.ecrans
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.travail_pratique_synthese_toni_et_farid.Viewmodel.LieuxViewModel
@@ -25,6 +28,8 @@ fun EcranDetailLieu(
 
     // On récupère le lieu correspondant à l'id passé dans la route
     val lieu = lieux.find { it.id == lieuId }
+
+    val context = LocalContext.current
 
     Scaffold(
         topBar = {
@@ -55,6 +60,26 @@ fun EcranDetailLieu(
 
             Text(text = "Latitude : ${lieu.latitude}")
             Text(text = "Longitude : ${lieu.longitude}")
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Bouton pour ouvrir la localisation dans Google Maps
+            Button(
+                onClick = {
+                    val uri = Uri.parse(
+                        "geo:${lieu.latitude},${lieu.longitude}?q=${lieu.latitude},${lieu.longitude}(${Uri.encode(lieu.nom)})"
+                    )
+                    val intent = Intent(Intent.ACTION_VIEW, uri).apply {
+                        setPackage("com.google.android.apps.maps")
+                    }
+                    if (intent.resolveActivity(context.packageManager) != null) {
+                        context.startActivity(intent)
+                    }
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Ouvrir dans Google Maps")
+            }
+
             Spacer(modifier = Modifier.height(16.dp))
 
             Button(onClick = { navController.popBackStack() }) {
