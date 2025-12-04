@@ -5,5 +5,7 @@ data class Utilisateur(
     val courriel: String = "",
     val nomAffiche: String = "",
     val photoUrl: String? = null,
-    val langue: String = "fr"   // "fr" ou "en"
+    val langue: String = "fr",   // "fr" ou "en"
+    val notificationsActives: Boolean = true
+
 )

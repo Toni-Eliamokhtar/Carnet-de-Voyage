@@ -4,4 +4,6 @@ sealed class Routes(val route: String) {
     data object Connexion : Routes("connexion")
     data object Accueil : Routes("accueil")
     data object ListeLieux : Routes("liste_lieux")
+
+    data object Profil : Routes("profil_parametres")
 }
