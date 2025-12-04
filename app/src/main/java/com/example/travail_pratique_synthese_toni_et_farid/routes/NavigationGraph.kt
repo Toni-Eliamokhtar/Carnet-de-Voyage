@@ -12,10 +12,10 @@ import com.example.travail_pratique_synthese_toni_et_farid.ecrans.EcranAccueil
 import com.example.travail_pratique_synthese_toni_et_farid.ecrans.EcranConnexion
 import com.example.travail_pratique_synthese_toni_et_farid.ecrans.EcranListeLieux
 import com.example.travail_pratique_synthese_toni_et_farid.ecrans.EcranDetailLieu
-
+import com.example.travail_pratique_synthese_toni_et_farid.ecrans.EcranProfilParametres
 
 /*
-Toutes les routes sont déclarées ici
+ Toutes les routes sont déclarées ici
  */
 @Composable
 fun NavigationGraph(
@@ -33,6 +33,7 @@ fun NavigationGraph(
                 viewModel = authViewModel
             )
         }
+
         // Écran d'accueil après la connexion
         composable(Routes.Accueil.route) {
             EcranAccueil(
@@ -40,10 +41,20 @@ fun NavigationGraph(
                 viewModel = authViewModel
             )
         }
+
+        // Écran profil / paramètres (Farid)
+        composable(Routes.Profil.route) {
+            EcranProfilParametres(
+                navController = navController,
+                viewModel = authViewModel
+            )
+        }
+
         // Écran qui affiche et gère les lieux
         composable(Routes.ListeLieux.route) {
             EcranListeLieux(navController = navController)
         }
+
         // Écran de détail d'un lieu avec paramètre "lieuId"
         composable(
             route = Routes.DetailLieu.route,
@@ -58,7 +69,5 @@ fun NavigationGraph(
                 lieuId = lieuId
             )
         }
-
-
     }
 }
