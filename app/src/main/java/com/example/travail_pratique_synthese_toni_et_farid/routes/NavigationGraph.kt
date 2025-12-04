@@ -13,6 +13,10 @@ import com.example.travail_pratique_synthese_toni_et_farid.ecrans.EcranConnexion
 import com.example.travail_pratique_synthese_toni_et_farid.ecrans.EcranListeLieux
 import com.example.travail_pratique_synthese_toni_et_farid.ecrans.EcranDetailLieu
 
+
+/*
+Toutes les routes sont déclarées ici
+ */
 @Composable
 fun NavigationGraph(
     navController: NavHostController,
@@ -22,23 +26,25 @@ fun NavigationGraph(
         navController = navController,
         startDestination = Routes.Connexion.route
     ) {
+        // Écran de connexion
         composable(Routes.Connexion.route) {
             EcranConnexion(
                 navController = navController,
                 viewModel = authViewModel
             )
         }
-
+        // Écran d'accueil après la connexion
         composable(Routes.Accueil.route) {
             EcranAccueil(
                 navController = navController,
                 viewModel = authViewModel
             )
         }
+        // Écran qui affiche et gère les lieux
         composable(Routes.ListeLieux.route) {
             EcranListeLieux(navController = navController)
         }
-
+        // Écran de détail d'un lieu avec paramètre "lieuId"
         composable(
             route = Routes.DetailLieu.route,
             arguments = listOf(

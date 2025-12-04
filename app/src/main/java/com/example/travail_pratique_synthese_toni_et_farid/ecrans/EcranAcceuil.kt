@@ -10,6 +10,9 @@ import androidx.navigation.NavHostController
 import com.example.travail_pratique_synthese_toni_et_farid.routes.Routes
 import com.example.travail_pratique_synthese_toni_et_farid.Viewmodel.AuthViewModel
 
+/*
+* Écran d'accueil après la connexion
+*/
 @Composable
 fun EcranAccueil(
     navController: NavHostController,
@@ -30,6 +33,7 @@ fun EcranAccueil(
 
         Spacer(Modifier.height(24.dp))
 
+        // Bouton qui mène vers l'écran avec la liste des lieux
         Button(
             onClick = {
                 navController.navigate(Routes.ListeLieux.route)

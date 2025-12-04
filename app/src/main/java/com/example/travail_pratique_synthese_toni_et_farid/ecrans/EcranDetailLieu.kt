@@ -10,16 +10,20 @@ import com.example.travail_pratique_synthese_toni_et_farid.Viewmodel.LieuxViewMo
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.material3.ExperimentalMaterial3Api
 
+// Cet écran affiche les détails d'un lieu sélectionné dans la liste
+// Pour l'instant, il montre seulement les infos en texte, pas de google maps pas de rien.
+// Pour y accéder : Il faut cliquer sur un lieu de la liste, tout simplement
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EcranDetailLieu(
     navController: NavController,
-    lieuId: String,
+    lieuId: String,                                 // id du lieu reçu par la navigation
     lieuxViewModel: LieuxViewModel = viewModel()
 ) {
+    // On observe la liste des lieux actuelle (c'est le même StateFlow que dans la liste)
     val lieux by lieuxViewModel.lieux.collectAsState()
 
-    // On récupère le lieu correspondant à l'id
+    // On récupère le lieu correspondant à l'id passé dans la route
     val lieu = lieux.find { it.id == lieuId }
 
     Scaffold(
@@ -35,10 +39,14 @@ fun EcranDetailLieu(
                 .padding(16.dp)
         ) {
             if (lieu == null) {
+                // Si l'id ne correspond à aucun lieu, on affiche ça
+                // (au cas où il y a un problème avec des données supprimées par exemple)
                 Text("Lieu introuvable.")
                 return@Column
             }
 
+            // Ici je montre les informations principales du lieu
+            // Je vais ajouter la mini-carte Google Maps et la photo plus tard
             Text(text = "Nom : ${lieu.nom}", style = MaterialTheme.typography.titleLarge)
             Spacer(modifier = Modifier.height(8.dp))
 
