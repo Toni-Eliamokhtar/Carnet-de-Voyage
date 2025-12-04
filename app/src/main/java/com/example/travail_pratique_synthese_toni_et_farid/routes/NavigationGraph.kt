@@ -9,6 +9,8 @@ import com.example.travail_pratique_synthese_toni_et_farid.Viewmodel.AuthViewMod
 import com.example.travail_pratique_synthese_toni_et_farid.ecrans.EcranAccueil
 import com.example.travail_pratique_synthese_toni_et_farid.ecrans.EcranConnexion
 import com.example.travail_pratique_synthese_toni_et_farid.ecrans.EcranListeLieux
+import com.example.travail_pratique_synthese_toni_et_farid.ecrans.EcranProfilParametres
+
 
 @Composable
 fun NavigationGraph(
@@ -34,6 +36,13 @@ fun NavigationGraph(
         }
         composable(Routes.ListeLieux.route) {
             EcranListeLieux(navController = navController)
+        }
+
+        composable(Routes.Profil.route) {
+            EcranProfilParametres(
+                navController = navController,
+                viewModel = authViewModel
+            )
         }
 
     }
