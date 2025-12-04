@@ -9,20 +9,24 @@ import com.google.firebase.database.DatabaseError
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
+/*
+C'est le ViewModel responsable de la gestion des lieux (lecture et écriture dans Firebase)
+ */
 class LieuxViewModel : ViewModel() {
 
     // Référence vers le noeud "lieux" dans Firebase Realtime Database
     private val db = FirebaseDatabase.getInstance().getReference("lieux")
 
-    // Liste observable de lieux pour l'UI
+    // Liste observable de lieux pour l'UI (StateFlow utilisé par Compose)
     private val _lieux = MutableStateFlow<List<Lieu>>(emptyList())
     val lieux: StateFlow<List<Lieu>> = _lieux
 
     init {
+        // Dès la création du ViewModel, on commence directe à écouter Firebase
         observerLieux()
     }
 
-    // Lecture en temps réel
+    // Lecture en temps réel des lieux
     private fun observerLieux() {
         db.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
@@ -40,26 +44,27 @@ class LieuxViewModel : ViewModel() {
             }
 
             override fun onCancelled(error: DatabaseError) {
-                // logger si tu veux
+                // Ici je pourrais logger l'erreur si nécessaire
             }
         })
     }
 
-    // Ajouter un lieu
+    // Cette fonction ajoute un lieu dans Firebase
     fun ajouterLieu(lieu: Lieu) {
         val key = db.push().key ?: return
         val nouveauLieu = lieu.copy(id = key)
 
         db.child(key).setValue(nouveauLieu)
 
-        // on met aussi à jour localement pour que l'UI réagisse direct
+        // on met aussi à jour localement pour que l'UI réagisse directe
         _lieux.value = _lieux.value + nouveauLieu
     }
 
-    // Supprimer un lieu
+    // Supprimer un lieu par son id
     fun supprimerLieu(id: String) {
         if (id.isNotEmpty()) {
             db.child(id).removeValue()
+            // Ici on met à jour la liste locale
             _lieux.value = _lieux.value.filterNot { it.id == id }
         }
     }

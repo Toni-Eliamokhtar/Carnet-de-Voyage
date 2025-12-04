@@ -21,19 +21,27 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.travail_pratique_synthese_toni_et_farid.Modele.Lieu
 import com.example.travail_pratique_synthese_toni_et_farid.Viewmodel.LieuxViewModel
+import com.example.travail_pratique_synthese_toni_et_farid.routes.Routes
+import androidx.compose.foundation.clickable
 
+/* Écran qui gère :
+- La liste des lieux (lecture depuis Firebase)
+- L'ajout (avec un formulaire) / Suppression de lieux (écriture directe sur Firebase)
+*/
 @Composable
 fun EcranListeLieux(
     navController: NavController,
     lieuxViewModel: LieuxViewModel = viewModel()
 ) {
+    // On observe la liste des lieux exposée par le ViewModel
+    // L'UI se met à jour automatiquement quand Firebase change
     val lieux by lieuxViewModel.lieux.collectAsState(initial = emptyList())
 
     // États des champs du formulaire
     var nom by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
 
-    // Erreur sur le nom
+    // Message d'erreur pour le champ nom (il est obligatoire)
     var errorNom by remember { mutableStateOf<String?>(null) }
 
     Column(
@@ -41,7 +49,7 @@ fun EcranListeLieux(
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        // Ligne du haut : titre + retour
+        // Ligne du haut : titre + retour vers l'écran d'accueil
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
@@ -55,11 +63,12 @@ fun EcranListeLieux(
 
         Spacer(Modifier.height(16.dp))
 
-        // 🔹 Formulaire d'ajout
+        // 🔹 Formulaire d'ajout d'un lieu
         OutlinedTextField(
             value = nom,
             onValueChange = {
                 nom = it
+                // On enlève le message d'erreur si l'utilisateur commence à taper un nom
                 if (it.isNotBlank()) {
                     errorNom = null
                 }
@@ -88,23 +97,28 @@ fun EcranListeLieux(
 
         Spacer(Modifier.height(8.dp))
 
+        // Bouton qui valide le formulaire et ajoute un lieu dans Firebase
         Button(
             onClick = {
                 if (nom.isBlank()) {
+                    // on empêche l'ajout si le nom est vide
                     errorNom = "Le nom du lieu est obligatoire."
                     return@Button
                 }
 
+                // Pour l'instant les coordonnées sont fixes
+                // Elles seront remplacées par la vraie géolocalisation dans la partie Maps
                 val lieu = Lieu(
                     nom = nom,
                     description = description,
-                    latitude = 45.5,   // temporaire pour Validation 2
+                    latitude = 45.5,   // temporaire jusqu'à ajout de Maps
                     longitude = -73.6,
                     imageUrl = "",
                     userId = "demo"
                 )
                 lieuxViewModel.ajouterLieu(lieu)
 
+                // Reset du formulaire d'ajout
                 nom = ""
                 description = ""
                 errorNom = null
@@ -116,7 +130,7 @@ fun EcranListeLieux(
 
         Spacer(Modifier.height(16.dp))
 
-        // 🔹 Liste des lieux
+        // 🔹 Affichage de la liste des lieux
         if (lieux.isEmpty()) {
             Text("Aucun lieu pour le moment.")
         } else {
@@ -127,6 +141,14 @@ fun EcranListeLieux(
                         onSupprimer = {
                             if (lieu.id.isNotBlank()) {
                                 lieuxViewModel.supprimerLieu(lieu.id)
+                            }
+                        },
+                        onVoirDetail = {
+                            if (lieu.id.isNotBlank()) {
+                                // Navigation vers l'écran de détails en passant l'id dans la route
+                                navController.navigate(
+                                    Routes.DetailLieu.createRoute(lieu.id)
+                                )
                             }
                         }
                     )
@@ -139,11 +161,14 @@ fun EcranListeLieux(
 @Composable
 fun LieuItem(
     lieu: Lieu,
-    onSupprimer: () -> Unit
+    onSupprimer: () -> Unit,
+    onVoirDetail: () -> Unit
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
+            // Clic sur la carte = ouvrir les détails du lieu
+            .clickable { onVoirDetail() }   // 👈 clic sur la carte
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
             Text(
@@ -158,6 +183,7 @@ fun LieuItem(
                 overflow = TextOverflow.Ellipsis
             )
             Spacer(Modifier.height(8.dp))
+            // Bouton de suppression du lieu
             Button(onClick = onSupprimer) {
                 Text("Supprimer")
             }
