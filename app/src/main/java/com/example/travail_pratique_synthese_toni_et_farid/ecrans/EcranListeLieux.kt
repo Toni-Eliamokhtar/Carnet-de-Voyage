@@ -21,6 +21,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.travail_pratique_synthese_toni_et_farid.Modele.Lieu
 import com.example.travail_pratique_synthese_toni_et_farid.Viewmodel.LieuxViewModel
+import com.example.travail_pratique_synthese_toni_et_farid.routes.Routes
+import androidx.compose.foundation.clickable
 
 @Composable
 fun EcranListeLieux(
@@ -128,6 +130,13 @@ fun EcranListeLieux(
                             if (lieu.id.isNotBlank()) {
                                 lieuxViewModel.supprimerLieu(lieu.id)
                             }
+                        },
+                        onVoirDetail = {
+                            if (lieu.id.isNotBlank()) {
+                                navController.navigate(
+                                    Routes.DetailLieu.createRoute(lieu.id)
+                                )
+                            }
                         }
                     )
                 }
@@ -139,11 +148,13 @@ fun EcranListeLieux(
 @Composable
 fun LieuItem(
     lieu: Lieu,
-    onSupprimer: () -> Unit
+    onSupprimer: () -> Unit,
+    onVoirDetail: () -> Unit
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
+            .clickable { onVoirDetail() }   // 👈 clic sur la carte
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
             Text(
