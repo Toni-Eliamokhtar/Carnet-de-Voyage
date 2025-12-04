@@ -39,6 +39,14 @@ fun EcranAccueil(
             Text("Voir les lieux")
         }
 
+        Button(
+            onClick = { navController.navigate(Routes.Profil.route) },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Profil / Paramètres")
+        }
+
+
         Spacer(Modifier.height(16.dp))
 
         Button(
