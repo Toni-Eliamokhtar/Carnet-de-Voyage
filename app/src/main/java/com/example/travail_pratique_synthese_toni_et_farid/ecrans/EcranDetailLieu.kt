@@ -12,6 +12,12 @@ import androidx.navigation.NavController
 import com.example.travail_pratique_synthese_toni_et_farid.Viewmodel.LieuxViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.material3.ExperimentalMaterial3Api
+import com.google.android.gms.maps.model.CameraPosition
+import com.google.android.gms.maps.model.LatLng
+import com.google.maps.android.compose.GoogleMap
+import com.google.maps.android.compose.Marker
+import com.google.maps.android.compose.MarkerState
+import com.google.maps.android.compose.rememberCameraPositionState
 
 // Cet écran affiche les détails d'un lieu sélectionné dans la liste
 // Pour l'instant, il montre seulement les infos en texte, pas de google maps pas de rien.
@@ -60,6 +66,27 @@ fun EcranDetailLieu(
 
             Text(text = "Latitude : ${lieu.latitude}")
             Text(text = "Longitude : ${lieu.longitude}")
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Mini-carte Google Maps centrée sur les coordonnées du lieu
+            val positionLieu = LatLng(lieu.latitude, lieu.longitude)
+            val cameraPositionState = rememberCameraPositionState {
+                position = CameraPosition.fromLatLngZoom(positionLieu, 14f)
+            }
+
+            GoogleMap(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(250.dp),
+                cameraPositionState = cameraPositionState
+            ) {
+                Marker(
+                    state = MarkerState(position = positionLieu),
+                    title = lieu.nom.ifBlank { "Lieu" },
+                    snippet = lieu.description
+                )
+            }
+
             Spacer(modifier = Modifier.height(16.dp))
 
             // Bouton pour ouvrir la localisation dans Google Maps
