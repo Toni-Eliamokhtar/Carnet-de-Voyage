@@ -13,6 +13,7 @@ data class Lieu(
     val description: String = "",
     val latitude: Double = 0.0,     // Latitude et longitude seront mis à jour avec la vraie géolocalisation
     val longitude: Double = 0.0,
+    val adresse: String = "",       // Adresse textuelle du lieu (ou "Position actuelle")
     val imageUrl: String = "",      // URL de la photo dans le stockage (Je vais le faire plus tard)
     val userId: String = ""         // Permet de savoir quel utilisateur a créé le lieu
 )
