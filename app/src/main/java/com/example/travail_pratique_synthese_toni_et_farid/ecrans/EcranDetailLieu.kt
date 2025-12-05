@@ -64,47 +64,62 @@ fun EcranDetailLieu(
             Text(text = "Description : ${lieu.description}")
             Spacer(modifier = Modifier.height(8.dp))
 
-            Text(text = "Latitude : ${lieu.latitude}")
-            Text(text = "Longitude : ${lieu.longitude}")
+            Text(text = "Adresse : ${lieu.adresse}")
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Mini-carte Google Maps centrée sur les coordonnées du lieu
-            val positionLieu = LatLng(lieu.latitude, lieu.longitude)
-            val cameraPositionState = rememberCameraPositionState {
-                position = CameraPosition.fromLatLngZoom(positionLieu, 14f)
-            }
+            // Mini-carte Google Maps centrée sur les coordonnées du lieu (si on a une vraie position)
+            if (lieu.latitude != 0.0 && lieu.longitude != 0.0) {
+                val positionLieu = LatLng(lieu.latitude, lieu.longitude)
+                val cameraPositionState = rememberCameraPositionState {
+                    position = CameraPosition.fromLatLngZoom(positionLieu, 10f)
+                }
 
-            GoogleMap(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(250.dp),
-                cameraPositionState = cameraPositionState
-            ) {
-                Marker(
-                    state = MarkerState(position = positionLieu),
-                    title = lieu.nom.ifBlank { "Lieu" },
-                    snippet = lieu.description
-                )
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Bouton pour ouvrir la localisation dans Google Maps
-            Button(
-                onClick = {
-                    val uri = Uri.parse(
-                        "geo:${lieu.latitude},${lieu.longitude}?q=${lieu.latitude},${lieu.longitude}(${Uri.encode(lieu.nom)})"
+                GoogleMap(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(250.dp),
+                    cameraPositionState = cameraPositionState
+                ) {
+                    Marker(
+                        state = MarkerState(position = positionLieu),
+                        title = lieu.nom.ifBlank { "Lieu" },
+                        snippet = lieu.description
                     )
-                    val intent = Intent(Intent.ACTION_VIEW, uri).apply {
-                        setPackage("com.google.android.apps.maps")
-                    }
-                    if (intent.resolveActivity(context.packageManager) != null) {
-                        context.startActivity(intent)
-                    }
-                },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Ouvrir dans Google Maps")
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Bouton pour ouvrir la localisation précise dans Google Maps
+                Button(
+                    onClick = {
+                        val uri = Uri.parse(
+                            "geo:${lieu.latitude},${lieu.longitude}?q=${lieu.latitude},${lieu.longitude}(${Uri.encode(lieu.nom)})"
+                        )
+                        val intent = Intent(Intent.ACTION_VIEW, uri).apply {
+                            setPackage("com.google.android.apps.maps")
+                        }
+                        if (intent.resolveActivity(context.packageManager) != null) {
+                            context.startActivity(intent)
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Ouvrir dans Google Maps")
+                }
+            } else {
+                // Si on n'a pas de position exacte, on ouvre juste Google Maps sans chercher l'adresse
+                Button(
+                    onClick = {
+                        val uri = Uri.parse("geo:0,0")
+                        val intent = Intent(Intent.ACTION_VIEW, uri)
+                        if (intent.resolveActivity(context.packageManager) != null) {
+                            context.startActivity(intent)
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Ouvrir Google Maps")
+                }
             }
 
             Spacer(modifier = Modifier.height(16.dp))

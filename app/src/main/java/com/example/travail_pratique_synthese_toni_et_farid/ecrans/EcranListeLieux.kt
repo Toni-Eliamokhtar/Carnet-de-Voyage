@@ -30,6 +30,7 @@ import com.example.travail_pratique_synthese_toni_et_farid.Modele.Lieu
 import com.example.travail_pratique_synthese_toni_et_farid.Viewmodel.LieuxViewModel
 import com.example.travail_pratique_synthese_toni_et_farid.routes.Routes
 import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority
 
 /* Écran qui gère :
 - La liste des lieux (lecture depuis Firebase)
@@ -68,17 +69,19 @@ fun EcranListeLieux(
         contract = ActivityResultContracts.RequestPermission()
     ) { autorisee ->
         if (autorisee) {
-            fournisseurLocalisation.lastLocation
-                .addOnSuccessListener { localisation ->
-                    localisation?.let {
-                        latitude = it.latitude
-                        longitude = it.longitude
-                        adresse = "Position actuelle"   // on remplace l'adresse par la position actuelle
-                        messageErreurLocalisation = null
-                    } ?: run {
-                        messageErreurLocalisation = "Impossible de récupérer la localisation"
-                    }
+            fournisseurLocalisation.getCurrentLocation(
+                Priority.PRIORITY_HIGH_ACCURACY,
+                null
+            ).addOnSuccessListener { localisation ->
+                localisation?.let {
+                    latitude = it.latitude
+                    longitude = it.longitude
+                    adresse = "Position actuelle"   // on remplace l'adresse par la position actuelle
+                    messageErreurLocalisation = null
+                } ?: run {
+                    messageErreurLocalisation = "Impossible de récupérer la localisation"
                 }
+            }
         } else {
             messageErreurLocalisation = "Permission de localisation refusée"
         }
@@ -172,18 +175,20 @@ fun EcranListeLieux(
 
                 if (permissionState == PackageManager.PERMISSION_GRANTED) {
                     // Permission déjà accordée
-                    fournisseurLocalisation.lastLocation
-                        .addOnSuccessListener { localisation ->
-                            localisation?.let {
-                                latitude = it.latitude
-                                longitude = it.longitude
-                                adresse = "Position actuelle"
-                                messageErreurLocalisation = null
-                            } ?: run {
-                                messageErreurLocalisation =
-                                    "Impossible de récupérer la localisation"
-                            }
+                    fournisseurLocalisation.getCurrentLocation(
+                        Priority.PRIORITY_HIGH_ACCURACY,
+                        null
+                    ).addOnSuccessListener { localisation ->
+                        localisation?.let {
+                            latitude = it.latitude
+                            longitude = it.longitude
+                            adresse = "Position actuelle"
+                            messageErreurLocalisation = null
+                        } ?: run {
+                            messageErreurLocalisation =
+                                "Impossible de récupérer la localisation"
                         }
+                    }
                 } else {
                     // Demander la permission
                     demandePermissionLocalisation.launch(
