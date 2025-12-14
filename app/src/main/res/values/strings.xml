@@ -1,4 +1,8 @@
 <resources>
+
+    <string name="app_name">TPSynthese</string>
+    <string name="google_maps_key">AIzaSyDKkJFpS_SJuzkxzdLlZgQk_hOHf5P_gO4</string>
+
     <!-- Accueil -->
     <string name="home_title_places">Accueil - Lieux à visiter</string>
     <string name="welcome_user">Bienvenue : %1$s</string>
@@ -13,7 +17,7 @@
     <string name="password">Mot de passe</string>
     <string name="sign_in">Se connecter</string>
     <string name="create_account">Créer un compte</string>
-    <string name="logging_in">Connexion en cours...</string>
+    <string name="logging_in">Connexion en cours…</string>
     <string name="email_not_verified_temp">Courriel non vérifié (plus tard on gérera ça)</string>
 
     <!-- Liste lieux -->
@@ -52,7 +56,7 @@
     <string name="name_cannot_be_empty">Le nom ne peut pas être vide</string>
     <string name="profile_updated">Profil mis à jour</string>
     <string name="profile_update_error">Erreur lors de la mise à jour</string>
-    <string name="enable_local_notifications_first">Active les notifications locales d'abord</string>
+    <string name="enable_local_notifications_first">Active les notifications locales d\'abord</string>
     <string name="profile_notification_title">Notification de profil #%1$d</string>
     <string name="profile_notification_text">Ceci est une notification locale de test.</string>
     <string name="profile_notifications_summary_title">Notifications de profil</string>

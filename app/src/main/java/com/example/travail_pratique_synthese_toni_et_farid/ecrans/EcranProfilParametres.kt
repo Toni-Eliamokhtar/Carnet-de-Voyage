@@ -28,6 +28,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -107,7 +108,7 @@ fun EcranProfilParametres(
     LaunchedEffect(Unit) {
         val channel = NotificationChannel(
             PROFIL_NOTIFICATION_CHANNEL_ID,
-            "Notifications profil",
+            context.getString(R.string.profile_notifications_channel_name),
             NotificationManager.IMPORTANCE_DEFAULT
         )
         val manager =
@@ -117,7 +118,7 @@ fun EcranProfilParametres(
 
     fun sauvegarderProfil() {
         if (nomAffiche.isBlank()) {
-            Toast.makeText(context, "Le nom ne peut pas être vide", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, context.getString(R.string.name_cannot_be_empty), Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -128,10 +129,8 @@ fun EcranProfilParametres(
         ) { succes ->
             Toast.makeText(
                 context,
-                if (succes)
-                    if (langue == "fr") "Profil mis à jour" else "Profile updated"
-                else
-                    if (langue == "fr") "Erreur lors de la mise à jour" else "Error updating profile",
+                if (succes) context.getString(R.string.profile_updated)
+                else context.getString(R.string.profile_update_error),
                 Toast.LENGTH_SHORT
             ).show()
         }
@@ -149,8 +148,7 @@ fun EcranProfilParametres(
         if (!notificationsActives) {
             Toast.makeText(
                 context,
-                if (langue == "fr") "Active les notifications locales d'abord"
-                else "Enable local notifications first",
+                context.getString(R.string.enable_local_notifications_first),
                 Toast.LENGTH_SHORT
             ).show()
             return
@@ -160,13 +158,8 @@ fun EcranProfilParametres(
         compteurNotifications += 1
         val notificationId = 1000 + compteurNotifications
 
-        val titre = if (langue == "fr") "Notification de profil #$compteurNotifications"
-        else "Profile notification #$compteurNotifications"
-
-        val texte = if (langue == "fr")
-            "Ceci est une notification locale de test."
-        else
-            "This is a local test notification."
+        val titre = context.getString(R.string.profile_notification_title, compteurNotifications)
+        val texte = context.getString(R.string.profile_notification_text)
 
         // Notification "normale" du groupe
         val notificationBuilder =
@@ -178,13 +171,8 @@ fun EcranProfilParametres(
                 .setGroup(PROFIL_NOTIFICATION_GROUP_KEY)
 
         // Notification de résumé pour le groupage
-        val summaryTitre = if (langue == "fr") "Notifications de profil"
-        else "Profile notifications"
-
-        val summaryTexte = if (langue == "fr")
-            "Vous avez ${compteurNotifications} notification(s) de profil."
-        else
-            "You have ${compteurNotifications} profile notification(s)."
+        val summaryTitre = context.getString(R.string.profile_notifications_summary_title)
+        val summaryTexte = context.getString(R.string.profile_notifications_summary_text, compteurNotifications)
 
         val summaryNotification =
             NotificationCompat.Builder(context, PROFIL_NOTIFICATION_CHANNEL_ID)
@@ -215,7 +203,7 @@ fun EcranProfilParametres(
     ) {
 
         Text(
-            text = if (langue == "fr") "Profil / Paramètres" else "Profile / Settings",
+            text = stringResource(R.string.profile_settings_title),
             style = MaterialTheme.typography.titleLarge
         )
 
@@ -236,7 +224,7 @@ fun EcranProfilParametres(
                 if (photoBitmap != null) {
                     Image(
                         bitmap = photoBitmap!!.asImageBitmap(),
-                        contentDescription = "Photo de profil",
+                        contentDescription = stringResource(R.string.profile_photo_cd),
                         modifier = Modifier
                             .size(96.dp)
                             .clip(CircleShape)
@@ -248,30 +236,23 @@ fun EcranProfilParametres(
                             .clip(CircleShape),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text("Photo")
+                        Text(stringResource(R.string.photo_placeholder))
                     }
                 }
 
                 Button(onClick = { cameraLauncher.launch(null) }) {
-                    Text(
-                        text = if (langue == "fr")
-                            "Prendre une photo"
-                        else
-                            "Take a picture"
-                    )
+                    Text(stringResource(R.string.take_picture))
                 }
 
                 OutlinedTextField(
                     value = nomAffiche,
                     onValueChange = { nomAffiche = it },
-                    label = { Text(if (langue == "fr") "Nom affiché" else "Display name") },
+                    label = { Text(stringResource(R.string.display_name)) },
                     modifier = Modifier.fillMaxWidth()
                 )
 
                 Text(
-                    text = courriel.ifBlank {
-                        if (langue == "fr") "Courriel inconnu" else "Unknown email"
-                    },
+                    text = courriel.ifBlank { stringResource(R.string.unknown_email) },
                     style = MaterialTheme.typography.bodyMedium
                 )
 
@@ -279,7 +260,7 @@ fun EcranProfilParametres(
                     onClick = { sauvegarderProfil() },
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text(if (langue == "fr") "Sauvegarder le profil" else "Save profile")
+                    Text(stringResource(R.string.save_profile))
                 }
             }
         }
@@ -295,24 +276,24 @@ fun EcranProfilParametres(
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Text("Langue", style = MaterialTheme.typography.titleMedium)
+                Text(stringResource(R.string.language), style = MaterialTheme.typography.titleMedium)
 
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     TextButton(onClick = { langue = "fr" }) {
-                        Text("FR")
+                        Text(stringResource(R.string.lang_fr_short))
                     }
                     TextButton(onClick = { langue = "en" }) {
-                        Text("EN")
+                        Text(stringResource(R.string.lang_en_short))
                     }
                 }
 
                 Text(
                     text = if (langue == "fr")
-                        "Langue actuelle : Français"
+                        stringResource(R.string.current_language_french)
                     else
-                        "Current language: English"
+                        stringResource(R.string.current_language_english)
                 )
             }
         }
@@ -329,7 +310,7 @@ fun EcranProfilParametres(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Text(
-                    text = if (langue == "fr") "Notifications locales" else "Local notifications",
+                    text = stringResource(R.string.local_notifications),
                     style = MaterialTheme.typography.titleMedium
                 )
 
@@ -338,12 +319,7 @@ fun EcranProfilParametres(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = if (langue == "fr")
-                            "Activer les notifications"
-                        else
-                            "Enable notifications"
-                    )
+                    Text(text = stringResource(R.string.enable_notifications))
                     Switch(
                         checked = notificationsActives,
                         onCheckedChange = { notificationsActives = it }
@@ -354,12 +330,7 @@ fun EcranProfilParametres(
                     onClick = { envoyerNotificationTest() },
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text(
-                        text = if (langue == "fr")
-                            "Tester une notification"
-                        else
-                            "Test a notification"
-                    )
+                    Text(stringResource(R.string.test_notification))
                 }
             }
         }
@@ -374,7 +345,7 @@ fun EcranProfilParametres(
             },
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text(if (langue == "fr") "Se déconnecter" else "Log out")
+            Text(stringResource(R.string.logout))
         }
     }
 }
