@@ -1,0 +1,23 @@
+<resources>
+    <string name="app_name">TPSynthesis</string>
+
+    <!-- Auth -->
+    <string name="login_title">Login</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="login">Sign in</string>
+    <string name="register">Create account</string>
+    <string name="forgot_password">Forgot password?</string>
+
+    <!-- Home -->
+    <string name="home_title">Home</string>
+    <string name="welcome">Welcome</string>
+
+    <!-- Profile / Settings -->
+    <string name="profile_title">Profile and Settings</string>
+    <string name="language">Language</string>
+    <string name="language_fr">French</string>
+    <string name="language_en">English</string>
+    <string name="notifications">Notifications</string>
+    <string name="logout">Log out</string>
+</resources>
