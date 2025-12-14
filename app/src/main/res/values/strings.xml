@@ -1,4 +1,23 @@
 <resources>
-    <string name="app_name">TP_Synthese_Toni_Farid</string>
+    <string name="app_name">TPSynthese</string>
     <string name="google_maps_key">AIzaSyDKkJFpS_SJuzkxzdLlZgQk_hOHf5P_gO4</string>
+    <!-- Auth -->
+    <string name="login_title">Connexion</string>
+    <string name="email">Courriel</string>
+    <string name="password">Mot de passe</string>
+    <string name="login">Se connecter</string>
+    <string name="register">Créer un compte</string>
+    <string name="forgot_password">Mot de passe oublié ?</string>
+
+    <!-- Accueil -->
+    <string name="home_title">Accueil</string>
+    <string name="welcome">Bienvenue</string>
+
+    <!-- Profil / Paramètres -->
+    <string name="profile_title">Profil et paramètres</string>
+    <string name="language">Langue</string>
+    <string name="language_fr">Français</string>
+    <string name="language_en">Anglais</string>
+    <string name="notifications">Notifications</string>
+    <string name="logout">Se déconnecter</string>
 </resources>
