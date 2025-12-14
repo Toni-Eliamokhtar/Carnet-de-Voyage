@@ -1,24 +1,74 @@
 <resources>
-    <string name="app_name">TPSynthesis</string>
-    <string name="google_maps_key">AIzaSyDKkJFpS_SJuzkxzdLlZgQk_hOHf5P_gO4</string>
+    <!-- Home -->
+    <string name="home_title_places">Home - Places to visit</string>
+    <string name="welcome_user">Welcome: %1$s</string>
+    <string name="unknown_user">Unknown user</string>
+    <string name="see_places">View places</string>
+    <string name="profile_settings">Profile / Settings</string>
+    <string name="logout">Log out</string>
 
     <!-- Auth -->
-    <string name="login_title">Login</string>
+    <string name="auth_title">Login</string>
     <string name="email">Email</string>
     <string name="password">Password</string>
-    <string name="login">Sign in</string>
-    <string name="register">Create account</string>
-    <string name="forgot_password">Forgot password?</string>
+    <string name="sign_in">Sign in</string>
+    <string name="create_account">Create account</string>
+    <string name="logging_in">Signing in...</string>
+    <string name="email_not_verified_temp">Email not verified (we will handle this later)</string>
 
-    <!-- Home -->
-    <string name="home_title">Home</string>
-    <string name="welcome">Welcome</string>
+    <!-- Places list -->
+    <string name="places_list_title">Places list</string>
+    <string name="place_name_required_star">Place name*</string>
+    <string name="description_optional">Description (optional)</string>
+    <string name="address_required_if_no_position">Address (required if no position)</string>
+    <string name="use_my_current_position">Use my current location</string>
+    <string name="current_position">Current location</string>
+    <string name="latitude_label">Latitude: %1$s</string>
+    <string name="longitude_label">Longitude: %1$s</string>
+    <string name="error_location_unavailable">Unable to get location</string>
+    <string name="error_location_permission_denied">Location permission denied</string>
+    <string name="error_place_name_required">Place name is required.</string>
+    <string name="error_address_or_position_required">You must enter an address or use your location.</string>
+    <string name="add_this_place">Add this place</string>
+    <string name="no_places_yet">No places yet.</string>
+    <string name="unnamed_place">Unnamed</string>
+    <string name="no_description">No description</string>
+    <string name="delete">Delete</string>
+    <string name="back">Back</string>
+
+    <!-- Place detail -->
+    <string name="place_detail_title">Place details</string>
+    <string name="place_not_found">Place not found.</string>
+    <string name="name_label">Name: %1$s</string>
+    <string name="description_label">Description: %1$s</string>
+    <string name="address_label">Address: %1$s</string>
+    <string name="open_in_google_maps">Open in Google Maps</string>
+    <string name="open_google_maps">Open Google Maps</string>
+    <string name="place_fallback">Place</string>
 
     <!-- Profile / Settings -->
-    <string name="profile_title">Profile and Settings</string>
+    <string name="profile_settings_title">Profile / Settings</string>
+    <string name="profile_notifications_channel_name">Profile notifications</string>
+    <string name="name_cannot_be_empty">Name cannot be empty</string>
+    <string name="profile_updated">Profile updated</string>
+    <string name="profile_update_error">Error updating profile</string>
+    <string name="enable_local_notifications_first">Enable local notifications first</string>
+    <string name="profile_notification_title">Profile notification #%1$d</string>
+    <string name="profile_notification_text">This is a local test notification.</string>
+    <string name="profile_notifications_summary_title">Profile notifications</string>
+    <string name="profile_notifications_summary_text">You have %1$d profile notification(s).</string>
+    <string name="profile_photo_cd">Profile photo</string>
+    <string name="photo_placeholder">Photo</string>
+    <string name="take_picture">Take a picture</string>
+    <string name="display_name">Display name</string>
+    <string name="unknown_email">Unknown email</string>
+    <string name="save_profile">Save profile</string>
     <string name="language">Language</string>
-    <string name="language_fr">French</string>
-    <string name="language_en">English</string>
-    <string name="notifications">Notifications</string>
-    <string name="logout">Log out</string>
+    <string name="lang_fr_short">FR</string>
+    <string name="lang_en_short">EN</string>
+    <string name="current_language_french">Current language: French</string>
+    <string name="current_language_english">Current language: English</string>
+    <string name="local_notifications">Local notifications</string>
+    <string name="enable_notifications">Enable notifications</string>
+    <string name="test_notification">Test a notification</string>
 </resources>
