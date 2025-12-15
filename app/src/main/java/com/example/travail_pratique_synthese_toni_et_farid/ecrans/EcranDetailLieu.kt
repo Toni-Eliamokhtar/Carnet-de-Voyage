@@ -1,11 +1,14 @@
 package com.example.travail_pratique_synthese_toni_et_farid.ecrans
 
 import android.content.Intent
+import android.graphics.BitmapFactory
 import android.net.Uri
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -57,6 +60,25 @@ fun EcranDetailLieu(
                 // (au cas où il y a un problème avec des données supprimées par exemple)
                 Text(stringResource(R.string.place_not_found))
                 return@Column
+            }
+
+            // Affichage de la photo du lieu (si elle existe)
+            if (lieu.imageUrl.isNotBlank()) {
+                val bitmap = remember(lieu.imageUrl) {
+                    BitmapFactory.decodeFile(lieu.imageUrl)
+                }
+
+                bitmap?.let {
+                    Image(
+                        bitmap = it.asImageBitmap(),
+                        contentDescription = "Photo du lieu",
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(220.dp)
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
             }
 
             // Ici je montre les informations principales du lieu

@@ -2,12 +2,19 @@ package com.example.travail_pratique_synthese_toni_et_farid.ecrans
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.ImageDecoder
+import android.os.Build
+import android.provider.MediaStore
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -19,6 +26,8 @@ import com.example.travail_pratique_synthese_toni_et_farid.R
 import com.example.travail_pratique_synthese_toni_et_farid.Viewmodel.LieuxViewModel
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
+import java.io.File
+import java.io.FileOutputStream
 
 /* Écran qui gère :
 - L'ajout d'un lieu avec formulaire
@@ -43,6 +52,11 @@ fun EcranFormLieu(
     var description by remember { mutableStateOf("") }
     var adresse by remember { mutableStateOf("") }
 
+    // Gestion de l'image (chemin local + aperçu)
+    var imagePath by remember { mutableStateOf("") }
+    var imagePreviewBitmap by remember { mutableStateOf<Bitmap?>(null) }
+    var messageErreurImage by remember { mutableStateOf<String?>(null) }
+
     // Message d'erreur pour le champ nom (il est obligatoire)
     var errorNom by remember { mutableStateOf<String?>(null) }
     var errorAdresse by remember { mutableStateOf<String?>(null) }
@@ -64,6 +78,13 @@ fun EcranFormLieu(
             adresse = lieu.adresse
             latitude = lieu.latitude
             longitude = lieu.longitude
+
+            imagePath = lieu.imageUrl
+            imagePreviewBitmap = if (lieu.imageUrl.isNotBlank()) {
+                BitmapFactory.decodeFile(lieu.imageUrl)
+            } else {
+                null
+            }
         }
     }
 
@@ -89,6 +110,38 @@ fun EcranFormLieu(
         } else {
             messageErreurLocalisation =
                 context.getString(R.string.error_location_permission_denied)
+        }
+    }
+
+    // Launchers caméra + galerie
+    val lancerCamera = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicturePreview()
+    ) { bitmap ->
+        if (bitmap != null) {
+            val chemin = sauvegarderBitmapEnLocal(context.filesDir, bitmap)
+            imagePath = chemin
+            imagePreviewBitmap = bitmap
+            messageErreurImage = null
+        } else {
+            messageErreurImage = "Aucune image capturée."
+        }
+    }
+
+    val choisirGalerie = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri ->
+        if (uri != null) {
+            try {
+                val bitmap = chargerBitmapDepuisUri(context, uri)
+                val chemin = sauvegarderUriEnLocal(context, uri)
+                imagePath = chemin
+                imagePreviewBitmap = bitmap
+                messageErreurImage = null
+            } catch (e: Exception) {
+                messageErreurImage = "Erreur lors du chargement de l'image."
+            }
+        } else {
+            messageErreurImage = "Aucune image sélectionnée."
         }
     }
 
@@ -168,7 +221,49 @@ fun EcranFormLieu(
                 )
             }
 
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(12.dp))
+
+            // Section Multimédia (caméra + galerie) + aperçu
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                OutlinedButton(
+                    onClick = { lancerCamera.launch(null) },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text("Caméra")
+                }
+
+                OutlinedButton(
+                    onClick = { choisirGalerie.launch("image/*") },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text("Galerie")
+                }
+            }
+
+            if (messageErreurImage != null) {
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    text = messageErreurImage!!,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+
+            imagePreviewBitmap?.let { bmp ->
+                Spacer(Modifier.height(10.dp))
+                Image(
+                    bitmap = bmp.asImageBitmap(),
+                    contentDescription = "Aperçu de la photo",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(220.dp)
+                )
+            }
+
+            Spacer(Modifier.height(12.dp))
 
             Button(
                 onClick = {
@@ -236,14 +331,12 @@ fun EcranFormLieu(
                 Button(
                     onClick = {
                         if (nom.isBlank()) {
-                            errorNom =
-                                context.getString(R.string.error_place_name_required)
+                            errorNom = context.getString(R.string.error_place_name_required)
                             return@Button
                         }
 
                         if (latitude == null && adresse.isBlank()) {
-                            errorAdresse =
-                                context.getString(R.string.error_address_or_position_required)
+                            errorAdresse = context.getString(R.string.error_address_or_position_required)
                             return@Button
                         }
 
@@ -256,7 +349,7 @@ fun EcranFormLieu(
                             latitude = latitude ?: 0.0,
                             longitude = longitude ?: 0.0,
                             adresse = adresse,
-                            imageUrl = "",
+                            imageUrl = imagePath,
                             userId = "demo"
                         )
 
@@ -274,5 +367,44 @@ fun EcranFormLieu(
                 }
             }
         }
+    }
+}
+
+private fun sauvegarderBitmapEnLocal(baseDir: File, bitmap: Bitmap): String {
+    val dossier = File(baseDir, "lieux_images")
+    if (!dossier.exists()) dossier.mkdirs()
+
+    val fichier = File(dossier, "lieu_${System.currentTimeMillis()}.jpg")
+    FileOutputStream(fichier).use { out ->
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 90, out)
+    }
+    return fichier.absolutePath
+}
+
+private fun sauvegarderUriEnLocal(context: android.content.Context, uri: android.net.Uri): String {
+    val dossier = File(context.filesDir, "lieux_images")
+    if (!dossier.exists()) dossier.mkdirs()
+
+    val fichier = File(dossier, "lieu_${System.currentTimeMillis()}.jpg")
+    context.contentResolver.openInputStream(uri).use { input ->
+        if (input != null) {
+            FileOutputStream(fichier).use { output ->
+                input.copyTo(output)
+            }
+        }
+    }
+    return fichier.absolutePath
+}
+
+private fun chargerBitmapDepuisUri(
+    context: android.content.Context,
+    uri: android.net.Uri
+): Bitmap {
+    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+        val source = ImageDecoder.createSource(context.contentResolver, uri)
+        ImageDecoder.decodeBitmap(source)
+    } else {
+        @Suppress("DEPRECATION")
+        MediaStore.Images.Media.getBitmap(context.contentResolver, uri)
     }
 }
