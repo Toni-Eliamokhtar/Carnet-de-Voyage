@@ -196,15 +196,44 @@ class AuthViewModel : ViewModel() {
             auth.createUserWithEmailAndPassword(courriel, motPasse)
                 .addOnCompleteListener { task ->
                     if (task.isSuccessful) {
-                        verifierUtilisateur()
-                        // Créer aussi un profil par défaut
-                        chargerProfilUtilisateur()
+                        val user = auth.currentUser
+
+                        if (user == null) {
+                            _etatConnexion.value =
+                                EtatConnexion.Erreur("Utilisateur introuvable après création du compte")
+                            return@addOnCompleteListener
+                        }
+
+                        // Envoie le courriel de vérification après la création du compte
+                        user.sendEmailVerification()
+                            .addOnCompleteListener { mailTask ->
+                                if (mailTask.isSuccessful) {
+                                    // Mode strict: on indique "NonVerifie" et on bloque l'accès à l'app
+                                    _etatConnexion.value = EtatConnexion.NonVerifie(user)
+
+                                    // Crée/charge le profil par défaut dans Realtime Database
+                                    chargerProfilUtilisateur()
+
+                                    // Mode strict: déconnexion forcée tant que l'email n'est pas vérifié
+                                    auth.signOut()
+                                } else {
+                                    val message =
+                                        mailTask.exception?.message
+                                            ?: "Erreur lors de l'envoi du courriel de vérification"
+                                    _etatConnexion.value = EtatConnexion.Erreur(message)
+                                }
+                            }
                     } else {
                         val message = task.exception?.message ?: "Erreur de création de compte"
                         _etatConnexion.value = EtatConnexion.Erreur(message)
                     }
                 }
         }
+    }
+
+    // Permet de renvoyer le courriel de vérification (bouton dans l'écran connexion)
+    fun renvoyerEmailVerification() {
+        auth.currentUser?.sendEmailVerification()
     }
 
     // --------------------------------------------------
