@@ -19,22 +19,27 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.Alignment
 
-
+/*
+ * Écran de connexion / création de compte
+ * Gère aussi la vérification du courriel et la réinitialisation du mot de passe
+ */
 @Composable
 fun EcranConnexion(
     navController: NavHostController,
     viewModel: AuthViewModel
 ) {
+    // Champs saisis par l'utilisateur
     var courriel by remember { mutableStateOf("") }
     var motPasse by remember { mutableStateOf("") }
 
+    // État de connexion provenant du ViewModel
     val etat = viewModel.etatConnexion.collectAsStateWithLifecycle().value
 
-    // Message local pour le reset du mot de passe (succès/erreur)
+    // Message local pour la réinitialisation du mot de passe
     var messageReset by remember { mutableStateOf<String?>(null) }
     var resetSucces by remember { mutableStateOf(false) }
 
-    // Mode strict: navigation seulement si l'utilisateur est vérifié
+    // Navigation automatique seulement si l'utilisateur est authentifié et vérifié
     LaunchedEffect(etat) {
         when (etat) {
             is EtatConnexion.Authentifie -> {
@@ -46,7 +51,11 @@ fun EcranConnexion(
         }
     }
 
-    val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
+    // Détection de l'orientation de l'écran
+    val isLandscape =
+        LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
+
+    // Permet de rendre l'écran scrollable
     val scrollState = rememberScrollState()
 
     Column(
@@ -55,19 +64,29 @@ fun EcranConnexion(
             .verticalScroll(scrollState)
             .padding(16.dp)
     ) {
-        Text(stringResource(R.string.auth_title), style = MaterialTheme.typography.headlineSmall)
+
+        // Titre de l'écran
+        Text(
+            stringResource(R.string.auth_title),
+            style = MaterialTheme.typography.headlineSmall
+        )
 
         Spacer(Modifier.height(16.dp))
 
+        // Mise en page différente selon l'orientation
         if (isLandscape) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
+
+                // Colonne des champs et actions
                 Column(
                     modifier = Modifier.weight(1f),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
+
+                    // Champ courriel
                     OutlinedTextField(
                         value = courriel,
                         onValueChange = {
@@ -78,6 +97,7 @@ fun EcranConnexion(
                         modifier = Modifier.fillMaxWidth()
                     )
 
+                    // Champ mot de passe (masqué)
                     OutlinedTextField(
                         value = motPasse,
                         onValueChange = { motPasse = it },
@@ -86,6 +106,7 @@ fun EcranConnexion(
                         visualTransformation = PasswordVisualTransformation()
                     )
 
+                    // Bouton mot de passe oublié
                     TextButton(
                         onClick = {
                             viewModel.reinitialiserMotPasse(courriel) { succes, msg ->
@@ -98,6 +119,7 @@ fun EcranConnexion(
                         Text(stringResource(R.string.forgot_password))
                     }
 
+                    // Bouton connexion
                     Button(
                         onClick = { viewModel.connexion(courriel, motPasse) },
                         modifier = Modifier.fillMaxWidth()
@@ -105,6 +127,7 @@ fun EcranConnexion(
                         Text(stringResource(R.string.sign_in))
                     }
 
+                    // Bouton création de compte
                     OutlinedButton(
                         onClick = { viewModel.creerCompte(courriel, motPasse) },
                         modifier = Modifier.fillMaxWidth()
@@ -113,6 +136,7 @@ fun EcranConnexion(
                     }
                 }
 
+                // Colonne des messages d'état
                 Column(
                     modifier = Modifier
                         .weight(1f)
@@ -120,13 +144,19 @@ fun EcranConnexion(
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                     horizontalAlignment = Alignment.Start
                 ) {
+
+                    // Message pour le reset du mot de passe
                     messageReset?.let { msg ->
                         Text(
                             text = msg,
-                            color = if (resetSucces) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
+                            color = if (resetSucces)
+                                MaterialTheme.colorScheme.primary
+                            else
+                                MaterialTheme.colorScheme.error
                         )
                     }
 
+                    // Messages selon l'état de connexion
                     when (etat) {
                         is EtatConnexion.Chargement -> {
                             Text(stringResource(R.string.logging_in))
@@ -143,6 +173,7 @@ fun EcranConnexion(
                                 color = MaterialTheme.colorScheme.error
                             )
 
+                            // Bouton pour renvoyer le courriel de vérification
                             OutlinedButton(
                                 onClick = { viewModel.renvoyerEmailVerification() },
                                 modifier = Modifier.fillMaxWidth()
@@ -155,6 +186,8 @@ fun EcranConnexion(
                 }
             }
         } else {
+            // Mode portrait : affichage vertical
+
             OutlinedTextField(
                 value = courriel,
                 onValueChange = {
@@ -175,6 +208,7 @@ fun EcranConnexion(
 
             Spacer(Modifier.height(8.dp))
 
+            // Mot de passe oublié
             TextButton(
                 onClick = {
                     viewModel.reinitialiserMotPasse(courriel) { succes, msg ->
@@ -189,6 +223,7 @@ fun EcranConnexion(
 
             Spacer(Modifier.height(8.dp))
 
+            // Connexion
             Button(
                 onClick = { viewModel.connexion(courriel, motPasse) },
                 modifier = Modifier.fillMaxWidth()
@@ -198,6 +233,7 @@ fun EcranConnexion(
 
             Spacer(Modifier.height(8.dp))
 
+            // Création de compte
             OutlinedButton(
                 onClick = { viewModel.creerCompte(courriel, motPasse) },
                 modifier = Modifier.fillMaxWidth()
@@ -207,14 +243,19 @@ fun EcranConnexion(
 
             Spacer(Modifier.height(16.dp))
 
+            // Message de reset du mot de passe
             messageReset?.let { msg ->
                 Text(
                     text = msg,
-                    color = if (resetSucces) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
+                    color = if (resetSucces)
+                        MaterialTheme.colorScheme.primary
+                    else
+                        MaterialTheme.colorScheme.error
                 )
                 Spacer(Modifier.height(8.dp))
             }
 
+            // Messages selon l'état de connexion
             when (etat) {
                 is EtatConnexion.Chargement -> {
                     Text(stringResource(R.string.logging_in))
@@ -233,6 +274,7 @@ fun EcranConnexion(
 
                     Spacer(Modifier.height(8.dp))
 
+                    // Renvoi du courriel de vérification
                     OutlinedButton(
                         onClick = { viewModel.renvoyerEmailVerification() },
                         modifier = Modifier.fillMaxWidth()
@@ -244,5 +286,4 @@ fun EcranConnexion(
             }
         }
     }
-
 }

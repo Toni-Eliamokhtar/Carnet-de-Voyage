@@ -51,20 +51,27 @@ import androidx.core.content.edit
 private const val PROFIL_NOTIFICATION_CHANNEL_ID = "profil_notifications"
 private const val PROFIL_NOTIFICATION_GROUP_KEY = "profil_notification_group"
 
-// Stockage local de la photo de profil (dans le stockage interne de l'app)
+// Stockage local de la photo (dans le stockage interne privé de l'app)
 private const val PROFIL_PREFS_NAME = "profil_prefs"
-private const val PROFIL_PHOTO_PATH_KEY_PREFIX = "profil_photo_path_" // Clé différente par utilisateur
-private const val PROFIL_PHOTO_FILE_PREFIX = "photo_profil_"          // Fichier différent par utilisateur
+private const val PROFIL_PHOTO_PATH_KEY_PREFIX = "profil_photo_path_" // Clé unique par utilisateur
+private const val PROFIL_PHOTO_FILE_PREFIX = "photo_profil_"          // Fichier unique par utilisateur
 
+/*
+ * Écran Profil / Paramètres
+ * Permet de modifier le profil, la langue, les notifications locales et la photo (locale)
+ */
 @Composable
 fun EcranProfilParametres(
     navController: NavHostController,
     viewModel: AuthViewModel
 ) {
     val context = LocalContext.current
-    val uid = viewModel.utilisateurCourant?.uid.orEmpty() // UID de l'utilisateur courant (sert à isoler la photo)
+
+    // UID utilisé pour isoler les données locales (photo) par utilisateur
+    val uid = viewModel.utilisateurCourant?.uid.orEmpty()
 
     // ---------- PERMISSION NOTIFICATIONS ----------
+    // Sur Android 13+, on doit demander POST_NOTIFICATIONS
     var hasNotificationPermission by remember {
         mutableStateOf(
             Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
@@ -75,6 +82,7 @@ fun EcranProfilParametres(
         )
     }
 
+    // Lanceur pour demander la permission de notifications
     val notificationsPermissionLauncher =
         rememberLauncherForActivityResult(
             ActivityResultContracts.RequestPermission()
@@ -82,32 +90,35 @@ fun EcranProfilParametres(
             hasNotificationPermission = granted
         }
 
-    // IDs uniques pour les notifs
+    // Compteur local pour générer des IDs de notifications uniques
     var compteurNotifications by rememberSaveable { mutableStateOf(0) }
 
     // ---------- PROFIL : états venant du ViewModel ----------
+    // Profil lu dans Realtime Database (via AuthViewModel)
     val profilState by viewModel.profilUtilisateur.collectAsStateWithLifecycle()
 
+    // Champs modifiables localement dans l'écran
     var nomAffiche by rememberSaveable { mutableStateOf("") }
     var courriel by rememberSaveable { mutableStateOf("") }
-    var langue by rememberSaveable { mutableStateOf("fr") }      // sélection (temp)
+    var langue by rememberSaveable { mutableStateOf("fr") } // sélection temporaire (avant sauvegarde)
     var notificationsActives by rememberSaveable { mutableStateOf(true) }
 
-    var langueInitiale by rememberSaveable { mutableStateOf("") } // langue sauvegardée
+    // Valeur sauvegardée en base (sert pour afficher "Langue actuelle")
+    var langueInitiale by rememberSaveable { mutableStateOf("") }
 
-    // Photo locale (caméra, persistée localement)
+    // Photo chargée en mémoire pour l'affichage
     var photoBitmap by remember { mutableStateOf<Bitmap?>(null) }
 
-    // Sauvegarde la photo dans le stockage interne et retourne le chemin
+    // Sauvegarde la photo dans filesDir et retourne le chemin absolu
     fun sauvegarderPhotoLocalement(bitmap: Bitmap): String {
-        val fichier = File(context.filesDir, "$PROFIL_PHOTO_FILE_PREFIX$uid.jpg") // Un fichier par utilisateur
+        val fichier = File(context.filesDir, "$PROFIL_PHOTO_FILE_PREFIX$uid.jpg")
         FileOutputStream(fichier).use { out ->
             bitmap.compress(Bitmap.CompressFormat.JPEG, 90, out)
         }
         return fichier.absolutePath
     }
 
-    // Charge une photo depuis un chemin local
+    // Charge une photo depuis un chemin local (stockage interne)
     fun chargerPhotoLocale(path: String): Bitmap? {
         return try {
             FileInputStream(File(path)).use { input ->
@@ -118,11 +129,12 @@ fun EcranProfilParametres(
         }
     }
 
-    // Charger le profil au 1er affichage
+    // Exécuté au premier affichage de l'écran
     LaunchedEffect(Unit) {
+        // Récupère le profil depuis Realtime Database
         viewModel.chargerProfilUtilisateur()
 
-        // Recharge la photo sauvegardée localement de cet utilisateur si elle existe
+        // Recharge la photo locale associée à cet utilisateur si elle existe
         if (uid.isNotBlank()) {
             val prefs = context.getSharedPreferences(PROFIL_PREFS_NAME, Context.MODE_PRIVATE)
             val key = "$PROFIL_PHOTO_PATH_KEY_PREFIX$uid"
@@ -133,30 +145,36 @@ fun EcranProfilParametres(
         }
     }
 
-    // Quand le profil change (DB), on remplit les champs
-    //  écouter aussi profilState?.langue (pas seulement l'id)
-    LaunchedEffect(profilState?.id, profilState?.langue, profilState?.notificationsActives, profilState?.nomAffiche) {
+    // Quand le profil (Realtime DB) change, on met à jour les champs UI
+    LaunchedEffect(
+        profilState?.id,
+        profilState?.langue,
+        profilState?.notificationsActives,
+        profilState?.nomAffiche
+    ) {
         profilState?.let {
             nomAffiche = it.nomAffiche
             courriel = it.courriel
 
-            // langue sauvegardée (sert pour "Langue actuelle")
+            // Langue sauvegardée côté DB
             langueInitiale = it.langue
 
-            // langue sélectionnée par défaut = langue sauvegardée
+            // Langue sélectionnée par défaut = langue sauvegardée
             langue = it.langue
 
+            // Préférence notifications sauvegardée côté DB
             notificationsActives = it.notificationsActives
         }
     }
 
-    // Lanceur pour la caméra
+    // Lanceur caméra qui retourne un Bitmap (aperçu)
     val cameraLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.TakePicturePreview()) { bitmap ->
             if (bitmap != null) {
+                // Met à jour l'image affichée
                 photoBitmap = bitmap
 
-                // Sauvegarde la photo localement pour cet utilisateur
+                // Sauvegarde locale (fichier) + enregistre le chemin dans SharedPreferences
                 if (uid.isNotBlank()) {
                     val path = sauvegarderPhotoLocalement(bitmap)
                     val prefs = context.getSharedPreferences(PROFIL_PREFS_NAME, Context.MODE_PRIVATE)
@@ -166,7 +184,7 @@ fun EcranProfilParametres(
             }
         }
 
-    // Création du canal de notifications (Android 8+)
+    // Création du canal de notifications (obligatoire sur Android 8+)
     LaunchedEffect(Unit) {
         val channel = NotificationChannel(
             PROFIL_NOTIFICATION_CHANNEL_ID,
@@ -178,29 +196,35 @@ fun EcranProfilParametres(
         manager.createNotificationChannel(channel)
     }
 
+    // Sauvegarde du profil (Realtime DB) + application de la langue (locale de l'app)
     fun sauvegarderProfil() {
         if (nomAffiche.isBlank()) {
-            Toast.makeText(context, context.getString(R.string.name_cannot_be_empty), Toast.LENGTH_SHORT).show()
+            Toast.makeText(
+                context,
+                context.getString(R.string.name_cannot_be_empty),
+                Toast.LENGTH_SHORT
+            ).show()
             return
         }
 
-        // Appliquer la langue AU MOMENT de sauvegarder (et une seule fois)
+        // Applique la langue immédiatement dans l'app au moment de la sauvegarde
         AppCompatDelegate.setApplicationLocales(
             LocaleListCompat.forLanguageTags(
                 if (langue == "fr") "fr-FR" else "en-US"
             )
         )
 
+        // Met à jour le profil dans Firebase via le ViewModel
         viewModel.mettreAJourProfil(
             nomAffiche = nomAffiche,
             langue = langue,
             notificationsActives = notificationsActives
         ) { succes ->
             if (succes) {
-                // "Langue actuelle" change seulement après succès
+                // Mise à jour de la valeur affichée "Langue actuelle"
                 langueInitiale = langue
             } else {
-                // rollback si la sauvegarde échoue
+                // Revenir à l'ancienne langue si la sauvegarde échoue
                 if (langueInitiale.isNotBlank()) {
                     AppCompatDelegate.setApplicationLocales(
                         LocaleListCompat.forLanguageTags(
@@ -219,8 +243,9 @@ fun EcranProfilParametres(
         }
     }
 
+    // Envoie des notifications de test et les regroupe
     fun envoyerNotificationTest() {
-        // Android 13+ : permission
+        // Sur Android 13+, demander la permission si nécessaire
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
             !hasNotificationPermission
         ) {
@@ -228,6 +253,7 @@ fun EcranProfilParametres(
             return
         }
 
+        // Respecte la préférence utilisateur (activer/désactiver)
         if (!notificationsActives) {
             Toast.makeText(
                 context,
@@ -237,12 +263,14 @@ fun EcranProfilParametres(
             return
         }
 
+        // ID unique pour chaque notification
         compteurNotifications += 1
         val notificationId = 1000 + compteurNotifications
 
         val titre = context.getString(R.string.profile_notification_title, compteurNotifications)
         val texte = context.getString(R.string.profile_notification_text)
 
+        // Notification individuelle (fait partie d'un groupe)
         val notificationBuilder =
             NotificationCompat.Builder(context, PROFIL_NOTIFICATION_CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_launcher_foreground)
@@ -251,6 +279,7 @@ fun EcranProfilParametres(
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
                 .setGroup(PROFIL_NOTIFICATION_GROUP_KEY)
 
+        // Notification de résumé (group summary)
         val summaryTitre = context.getString(R.string.profile_notifications_summary_title)
         val summaryTexte = context.getString(R.string.profile_notifications_summary_text, compteurNotifications)
 
@@ -268,6 +297,7 @@ fun EcranProfilParametres(
                 .setGroupSummary(true)
                 .build()
 
+        // Envoi des deux notifications (individuelle + résumé)
         with(NotificationManagerCompat.from(context)) {
             notify(notificationId, notificationBuilder.build())
             notify(9999, summaryNotification)
@@ -275,7 +305,8 @@ fun EcranProfilParametres(
     }
 
     // ------------------- UI -----------------------
-    val scrollState = rememberScrollState() // Permet de faire défiler l'écran si le contenu dépasse
+    // Scroll pour éviter le débordement et gérer portrait/paysage
+    val scrollState = rememberScrollState()
     val isLandscape =
         androidx.compose.ui.platform.LocalConfiguration.current.orientation ==
                 android.content.res.Configuration.ORIENTATION_LANDSCAPE
@@ -283,21 +314,25 @@ fun EcranProfilParametres(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .verticalScroll(scrollState) // Rend l'écran scrollable
+            .verticalScroll(scrollState)
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
 
+        // Titre de l'écran
         Text(
             text = stringResource(R.string.profile_settings_title),
             style = MaterialTheme.typography.titleLarge
         )
 
         if (isLandscape) {
+            // Mode paysage : deux colonnes (profil à gauche, options à droite)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
+
+                // Colonne profil
                 Column(
                     modifier = Modifier.weight(1f),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -314,6 +349,7 @@ fun EcranProfilParametres(
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
 
+                            // Affichage de la photo si disponible
                             if (photoBitmap != null) {
                                 Image(
                                     bitmap = photoBitmap!!.asImageBitmap(),
@@ -323,6 +359,7 @@ fun EcranProfilParametres(
                                         .clip(CircleShape)
                                 )
                             } else {
+                                // Placeholder si aucune photo
                                 Box(
                                     modifier = Modifier
                                         .size(96.dp)
@@ -333,10 +370,12 @@ fun EcranProfilParametres(
                                 }
                             }
 
+                            // Déclenche la caméra (TakePicturePreview)
                             Button(onClick = { cameraLauncher.launch(null) }) {
                                 Text(stringResource(R.string.take_picture))
                             }
 
+                            // Champ nom affiché
                             OutlinedTextField(
                                 value = nomAffiche,
                                 onValueChange = { nomAffiche = it },
@@ -344,11 +383,13 @@ fun EcranProfilParametres(
                                 modifier = Modifier.fillMaxWidth()
                             )
 
+                            // Affichage du courriel
                             Text(
                                 text = courriel.ifBlank { stringResource(R.string.unknown_email) },
                                 style = MaterialTheme.typography.bodyMedium
                             )
 
+                            // Sauvegarde du profil
                             Button(
                                 onClick = { sauvegarderProfil() },
                                 modifier = Modifier.fillMaxWidth()
@@ -358,6 +399,7 @@ fun EcranProfilParametres(
                         }
                     }
 
+                    // Déconnexion
                     Button(
                         onClick = {
                             viewModel.deconnexion()
@@ -371,10 +413,13 @@ fun EcranProfilParametres(
                     }
                 }
 
+                // Colonne options (langue + notifications)
                 Column(
                     modifier = Modifier.weight(1f),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
+
+                    // Carte langue
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
@@ -385,11 +430,13 @@ fun EcranProfilParametres(
                                 .padding(16.dp),
                             verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            Text(stringResource(R.string.language), style = MaterialTheme.typography.titleMedium)
+                            Text(
+                                stringResource(R.string.language),
+                                style = MaterialTheme.typography.titleMedium
+                            )
 
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
+                            // Choix de la langue (temporaire jusqu'à la sauvegarde)
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                 TextButton(onClick = { langue = "fr" }) {
                                     Text(stringResource(R.string.lang_fr_short))
                                 }
@@ -398,6 +445,7 @@ fun EcranProfilParametres(
                                 }
                             }
 
+                            // Langue actuelle (celle sauvegardée)
                             Text(
                                 text = if (langueInitiale.startsWith("fr"))
                                     stringResource(R.string.current_language_french)
@@ -407,6 +455,7 @@ fun EcranProfilParametres(
                         }
                     }
 
+                    // Carte notifications locales
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
@@ -423,6 +472,7 @@ fun EcranProfilParametres(
                                 style = MaterialTheme.typography.titleMedium
                             )
 
+                            // Switch pour activer/désactiver les notifications
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -435,6 +485,7 @@ fun EcranProfilParametres(
                                 )
                             }
 
+                            // Bouton qui envoie une notification de test
                             Button(
                                 onClick = { envoyerNotificationTest() },
                                 modifier = Modifier.fillMaxWidth()
@@ -446,6 +497,8 @@ fun EcranProfilParametres(
                 }
             }
         } else {
+            // Mode portrait : sections empilées verticalement
+
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
@@ -514,9 +567,7 @@ fun EcranProfilParametres(
                 ) {
                     Text(stringResource(R.string.language), style = MaterialTheme.typography.titleMedium)
 
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         TextButton(onClick = { langue = "fr" }) {
                             Text(stringResource(R.string.lang_fr_short))
                         }
@@ -571,6 +622,7 @@ fun EcranProfilParametres(
                 }
             }
 
+            // Déconnexion en bas de l'écran en mode portrait
             Button(
                 onClick = {
                     viewModel.deconnexion()
@@ -584,5 +636,4 @@ fun EcranProfilParametres(
             }
         }
     }
-
 }
