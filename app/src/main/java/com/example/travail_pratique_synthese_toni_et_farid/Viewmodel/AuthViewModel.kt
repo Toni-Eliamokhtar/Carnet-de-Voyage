@@ -1,5 +1,7 @@
 package com.example.travail_pratique_synthese_toni_et_farid.Viewmodel
 
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.travail_pratique_synthese_toni_et_farid.Modele.EtatConnexion
@@ -32,6 +34,17 @@ class AuthViewModel : ViewModel() {
     val utilisateurCourant
         get() = auth.currentUser
 
+    private var derniereLangueAppliquee: String? = null
+
+    private fun appliquerLangue(langue: String) {
+        val tag = if (langue == "fr") "fr-FR" else "en-US"
+        if (derniereLangueAppliquee != langue) {
+            AppCompatDelegate.setApplicationLocales(
+                LocaleListCompat.forLanguageTags(tag)
+            )
+            derniereLangueAppliquee = langue
+        }
+    }
 
     // Vérifie l’utilisateur stocké par FirebaseAuth
     fun verifierUtilisateur() {
@@ -63,6 +76,7 @@ class AuthViewModel : ViewModel() {
                 val profil = snapshot.getValue(Utilisateur::class.java)
                 if (profil != null) {
                     _profilUtilisateur.value = profil
+                    appliquerLangue(profil.langue)
                 } else {
                     // Aucun profil : on en crée un par défaut
                     val nouveauProfil = Utilisateur(
@@ -74,6 +88,7 @@ class AuthViewModel : ViewModel() {
                     )
                     database.child(user.uid).setValue(nouveauProfil)
                     _profilUtilisateur.value = nouveauProfil
+                    appliquerLangue(nouveauProfil.langue)
                 }
             }
     }
@@ -119,6 +134,7 @@ class AuthViewModel : ViewModel() {
                 .addOnCompleteListener { dbTask ->
                     if (dbTask.isSuccessful) {
                         _profilUtilisateur.value = profilMaj
+                        appliquerLangue(langue)
                         onResult(true)
                     } else {
                         onResult(false)
@@ -198,5 +214,6 @@ class AuthViewModel : ViewModel() {
         auth.signOut()
         _etatConnexion.value = EtatConnexion.Inactif
         _profilUtilisateur.value = null
+        derniereLangueAppliquee = null
     }
 }
