@@ -41,7 +41,6 @@ import com.example.travail_pratique_synthese_toni_et_farid.R
 import com.example.travail_pratique_synthese_toni_et_farid.Viewmodel.AuthViewModel
 import com.example.travail_pratique_synthese_toni_et_farid.routes.Routes
 
-
 private const val PROFIL_NOTIFICATION_CHANNEL_ID = "profil_notifications"
 private const val PROFIL_NOTIFICATION_GROUP_KEY = "profil_notification_group"
 
@@ -78,11 +77,10 @@ fun EcranProfilParametres(
 
     var nomAffiche by rememberSaveable { mutableStateOf("") }
     var courriel by rememberSaveable { mutableStateOf("") }
-    var langue by rememberSaveable { mutableStateOf("fr") }
+    var langue by rememberSaveable { mutableStateOf("fr") }      // sélection (temp)
     var notificationsActives by rememberSaveable { mutableStateOf(true) }
 
-    var langueModifieeLocalement by rememberSaveable { mutableStateOf(false) }
-    var langueInitiale by rememberSaveable { mutableStateOf("") }
+    var langueInitiale by rememberSaveable { mutableStateOf("") } // langue sauvegardée
 
     // Photo locale (caméra, non persistée)
     var photoBitmap by remember { mutableStateOf<Bitmap?>(null) }
@@ -93,32 +91,19 @@ fun EcranProfilParametres(
     }
 
     // Quand le profil change (DB), on remplit les champs
-    LaunchedEffect(profilState?.id) {
+    // IMPORTANT: écouter aussi profilState?.langue (pas seulement l'id)
+    LaunchedEffect(profilState?.id, profilState?.langue, profilState?.notificationsActives, profilState?.nomAffiche) {
         profilState?.let {
             nomAffiche = it.nomAffiche
             courriel = it.courriel
 
-            if (langueInitiale.isBlank()) {
-                langueInitiale = it.langue
-            }
+            // langue sauvegardée (sert pour "Langue actuelle")
+            langueInitiale = it.langue
 
-            if (!langueModifieeLocalement) {
-                langue = it.langue
-            }
+            // langue sélectionnée par défaut = langue sauvegardée
+            langue = it.langue
 
             notificationsActives = it.notificationsActives
-        }
-    }
-
-    DisposableEffect(Unit) {
-        onDispose {
-            if (langue != langueInitiale && langueInitiale.isNotBlank()) {
-                AppCompatDelegate.setApplicationLocales(
-                    LocaleListCompat.forLanguageTags(
-                        if (langueInitiale == "fr") "fr-FR" else "en-US"
-                    )
-                )
-            }
         }
     }
 
@@ -148,20 +133,32 @@ fun EcranProfilParametres(
             return
         }
 
+        // Appliquer la langue AU MOMENT de sauvegarder (et une seule fois)
         AppCompatDelegate.setApplicationLocales(
             LocaleListCompat.forLanguageTags(
                 if (langue == "fr") "fr-FR" else "en-US"
             )
         )
 
-        langueInitiale = langue
-        langueModifieeLocalement = false
-
         viewModel.mettreAJourProfil(
             nomAffiche = nomAffiche,
             langue = langue,
             notificationsActives = notificationsActives
         ) { succes ->
+            if (succes) {
+                // "Langue actuelle" change seulement après succès
+                langueInitiale = langue
+            } else {
+                // rollback si la sauvegarde échoue
+                if (langueInitiale.isNotBlank()) {
+                    AppCompatDelegate.setApplicationLocales(
+                        LocaleListCompat.forLanguageTags(
+                            if (langueInitiale == "fr") "fr-FR" else "en-US"
+                        )
+                    )
+                }
+            }
+
             Toast.makeText(
                 context,
                 if (succes) context.getString(R.string.profile_updated)
@@ -189,14 +186,12 @@ fun EcranProfilParametres(
             return
         }
 
-        // Nouvelle notification -> ID unique
         compteurNotifications += 1
         val notificationId = 1000 + compteurNotifications
 
         val titre = context.getString(R.string.profile_notification_title, compteurNotifications)
         val texte = context.getString(R.string.profile_notification_text)
 
-        // Notification "normale" du groupe
         val notificationBuilder =
             NotificationCompat.Builder(context, PROFIL_NOTIFICATION_CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_launcher_foreground)
@@ -205,7 +200,6 @@ fun EcranProfilParametres(
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
                 .setGroup(PROFIL_NOTIFICATION_GROUP_KEY)
 
-        // Notification de résumé pour le groupage
         val summaryTitre = context.getString(R.string.profile_notifications_summary_title)
         val summaryTexte = context.getString(R.string.profile_notifications_summary_text, compteurNotifications)
 
@@ -242,7 +236,6 @@ fun EcranProfilParametres(
             style = MaterialTheme.typography.titleLarge
         )
 
-        // --- Carte avec les infos utilisateur ---
         Card(
             modifier = Modifier.fillMaxWidth(),
             elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
@@ -255,7 +248,6 @@ fun EcranProfilParametres(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
 
-                // Photo
                 if (photoBitmap != null) {
                     Image(
                         bitmap = photoBitmap!!.asImageBitmap(),
@@ -316,28 +308,18 @@ fun EcranProfilParametres(
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    TextButton(onClick = {
-                        langue = "fr"
-                        langueModifieeLocalement = true
-                        AppCompatDelegate.setApplicationLocales(
-                            LocaleListCompat.forLanguageTags("fr-FR")
-                        )
-                    }) {
+                    // IMPORTANT: on ne change pas l'app ici, seulement la sélection
+                    TextButton(onClick = { langue = "fr" }) {
                         Text(stringResource(R.string.lang_fr_short))
                     }
-                    TextButton(onClick = {
-                        langue = "en"
-                        langueModifieeLocalement = true
-                        AppCompatDelegate.setApplicationLocales(
-                            LocaleListCompat.forLanguageTags("en-US")
-                        )
-                    }) {
+                    TextButton(onClick = { langue = "en" }) {
                         Text(stringResource(R.string.lang_en_short))
                     }
                 }
 
+                // IMPORTANT: afficher la langue sauvegardée, pas la sélection
                 Text(
-                    text = if (langue.startsWith("fr"))
+                    text = if (langueInitiale.startsWith("fr"))
                         stringResource(R.string.current_language_french)
                     else
                         stringResource(R.string.current_language_english)
@@ -382,7 +364,6 @@ fun EcranProfilParametres(
             }
         }
 
-        // --- Déconnexion ---
         Button(
             onClick = {
                 viewModel.deconnexion()
