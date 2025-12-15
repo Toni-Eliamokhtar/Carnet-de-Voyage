@@ -10,6 +10,10 @@
     <string name="see_places">Voir les lieux</string>
     <string name="profile_settings">Profil / Paramètres</string>
     <string name="logout">Se déconnecter</string>
+    <string name="dashboard_title">Tableau de bord</string>
+    <string name="dashboard_total_places">Nombre de lieux : %1$d</string>
+    <string name="dashboard_last_added">Dernier ajout : %1$s</string>
+
 
     <!-- Connexion -->
     <string name="auth_title">Connexion</string>
@@ -19,6 +23,11 @@
     <string name="create_account">Créer un compte</string>
     <string name="logging_in">Connexion en cours…</string>
     <string name="email_not_verified_temp">Courriel non vérifié (plus tard on gérera ça)</string>
+    <string name="email_not_verified">Votre courriel n’est pas vérifié. Veuillez consulter votre boîte de réception.</string>
+    <string name="resend_verification_email">Renvoyer le courriel de vérification</string>
+    <string name="forgot_password">Mot de passe oublié ?</string>
+
+
 
     <!-- Liste lieux -->
     <string name="places_list_title">Liste des lieux</string>
@@ -75,4 +84,10 @@
     <string name="local_notifications">Notifications locales</string>
     <string name="enable_notifications">Activer les notifications</string>
     <string name="test_notification">Tester une notification</string>
+
+    <!-- Barre de navigation -->
+    <string name="nav_home">Accueil</string>
+    <string name="nav_places">Lieux</string>
+    <string name="nav_profile">Profil</string>
+
 </resources>

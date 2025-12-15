@@ -1,5 +1,7 @@
 package com.example.travail_pratique_synthese_toni_et_farid.Viewmodel
 
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.travail_pratique_synthese_toni_et_farid.Modele.EtatConnexion
@@ -32,6 +34,17 @@ class AuthViewModel : ViewModel() {
     val utilisateurCourant
         get() = auth.currentUser
 
+    private var derniereLangueAppliquee: String? = null
+
+    private fun appliquerLangue(langue: String) {
+        val tag = if (langue == "fr") "fr-FR" else "en-US"
+        if (derniereLangueAppliquee != langue) {
+            AppCompatDelegate.setApplicationLocales(
+                LocaleListCompat.forLanguageTags(tag)
+            )
+            derniereLangueAppliquee = langue
+        }
+    }
 
     // Vérifie l’utilisateur stocké par FirebaseAuth
     fun verifierUtilisateur() {
@@ -63,6 +76,7 @@ class AuthViewModel : ViewModel() {
                 val profil = snapshot.getValue(Utilisateur::class.java)
                 if (profil != null) {
                     _profilUtilisateur.value = profil
+                    appliquerLangue(profil.langue)
                 } else {
                     // Aucun profil : on en crée un par défaut
                     val nouveauProfil = Utilisateur(
@@ -74,6 +88,7 @@ class AuthViewModel : ViewModel() {
                     )
                     database.child(user.uid).setValue(nouveauProfil)
                     _profilUtilisateur.value = nouveauProfil
+                    appliquerLangue(nouveauProfil.langue)
                 }
             }
     }
@@ -119,6 +134,7 @@ class AuthViewModel : ViewModel() {
                 .addOnCompleteListener { dbTask ->
                     if (dbTask.isSuccessful) {
                         _profilUtilisateur.value = profilMaj
+                        appliquerLangue(langue)
                         onResult(true)
                     } else {
                         onResult(false)
@@ -180,9 +196,33 @@ class AuthViewModel : ViewModel() {
             auth.createUserWithEmailAndPassword(courriel, motPasse)
                 .addOnCompleteListener { task ->
                     if (task.isSuccessful) {
-                        verifierUtilisateur()
-                        // Créer aussi un profil par défaut
-                        chargerProfilUtilisateur()
+                        val user = auth.currentUser
+
+                        if (user == null) {
+                            _etatConnexion.value =
+                                EtatConnexion.Erreur("Utilisateur introuvable après création du compte")
+                            return@addOnCompleteListener
+                        }
+
+                        // Envoie le courriel de vérification après la création du compte
+                        user.sendEmailVerification()
+                            .addOnCompleteListener { mailTask ->
+                                if (mailTask.isSuccessful) {
+                                    // Mode strict: on indique "NonVerifie" et on bloque l'accès à l'app
+                                    _etatConnexion.value = EtatConnexion.NonVerifie(user)
+
+                                    // Crée/charge le profil par défaut dans Realtime Database
+                                    chargerProfilUtilisateur()
+
+                                    // Mode strict: déconnexion forcée tant que l'email n'est pas vérifié
+                                    auth.signOut()
+                                } else {
+                                    val message =
+                                        mailTask.exception?.message
+                                            ?: "Erreur lors de l'envoi du courriel de vérification"
+                                    _etatConnexion.value = EtatConnexion.Erreur(message)
+                                }
+                            }
                     } else {
                         val message = task.exception?.message ?: "Erreur de création de compte"
                         _etatConnexion.value = EtatConnexion.Erreur(message)
@@ -191,6 +231,31 @@ class AuthViewModel : ViewModel() {
         }
     }
 
+    // Permet de renvoyer le courriel de vérification (bouton dans l'écran connexion)
+    fun renvoyerEmailVerification() {
+        auth.currentUser?.sendEmailVerification()
+    }
+
+
+    // Envoie un courriel de réinitialisation du mot de passe à l'adresse fournie
+    fun reinitialiserMotPasse(courriel: String, onResult: (Boolean, String) -> Unit = { _, _ -> }) {
+        if (courriel.isBlank()) {
+            onResult(false, "Veuillez entrer votre courriel")
+            return
+        }
+
+        auth.sendPasswordResetEmail(courriel.trim())
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    onResult(true, "Courriel de réinitialisation envoyé")
+                } else {
+                    val message = task.exception?.message ?: "Erreur lors de l'envoi du courriel"
+                    onResult(false, message)
+                }
+            }
+    }
+
+
     // --------------------------------------------------
     //   DÉCONNEXION
     // --------------------------------------------------
@@ -198,5 +263,6 @@ class AuthViewModel : ViewModel() {
         auth.signOut()
         _etatConnexion.value = EtatConnexion.Inactif
         _profilUtilisateur.value = null
+        derniereLangueAppliquee = null
     }
 }

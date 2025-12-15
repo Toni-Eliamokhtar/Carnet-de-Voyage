@@ -8,6 +8,10 @@
     <string name="see_places">View places</string>
     <string name="profile_settings">Profile / Settings</string>
     <string name="logout">Log out</string>
+    <string name="dashboard_title">Dashboard</string>
+    <string name="dashboard_total_places">Total places: %1$d</string>
+    <string name="dashboard_last_added">Last added: %1$s</string>
+
 
     <!-- Auth -->
     <string name="auth_title">Login</string>
@@ -17,6 +21,9 @@
     <string name="create_account">Create account</string>
     <string name="logging_in">Signing in…</string>
     <string name="email_not_verified_temp">Email not verified (we will handle this later)</string>
+    <string name="email_not_verified">Your email address is not verified. Please check your inbox.</string>
+    <string name="resend_verification_email">Resend verification email</string>
+    <string name="forgot_password">Forgot password?</string>
 
     <!-- Places list -->
     <string name="places_list_title">Places list</string>
@@ -73,4 +80,10 @@
     <string name="local_notifications">Local notifications</string>
     <string name="enable_notifications">Enable notifications</string>
     <string name="test_notification">Test a notification</string>
+
+    <!-- Bottom navigation bar -->
+    <string name="nav_home">Home</string>
+    <string name="nav_places">Places</string>
+    <string name="nav_profile">Profile</string>
+
 </resources>
