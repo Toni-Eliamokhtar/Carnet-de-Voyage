@@ -40,6 +40,8 @@ import androidx.navigation.NavHostController
 import com.example.travail_pratique_synthese_toni_et_farid.R
 import com.example.travail_pratique_synthese_toni_et_farid.Viewmodel.AuthViewModel
 import com.example.travail_pratique_synthese_toni_et_farid.routes.Routes
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 
 private const val PROFIL_NOTIFICATION_CHANNEL_ID = "profil_notifications"
 private const val PROFIL_NOTIFICATION_GROUP_KEY = "profil_notification_group"
@@ -224,9 +226,12 @@ fun EcranProfilParametres(
     }
 
     // ------------------- UI -----------------------
+    val scrollState = rememberScrollState() // Permet de faire défiler l'écran si le contenu dépasse
+
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .verticalScroll(scrollState) // Rend l'écran scrollable
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
@@ -332,12 +337,13 @@ fun EcranProfilParametres(
             modifier = Modifier.fillMaxWidth(),
             elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
         ) {
-            Column(
+            Column( // Conteneur du contenu de la carte notifications
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
+
                 Text(
                     text = stringResource(R.string.local_notifications),
                     style = MaterialTheme.typography.titleMedium
