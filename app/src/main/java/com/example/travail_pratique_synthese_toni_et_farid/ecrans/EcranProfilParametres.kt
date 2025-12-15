@@ -6,6 +6,7 @@ import android.app.NotificationManager
 import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.os.Build
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -42,9 +43,18 @@ import com.example.travail_pratique_synthese_toni_et_farid.Viewmodel.AuthViewMod
 import com.example.travail_pratique_synthese_toni_et_farid.routes.Routes
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import java.io.File
+import java.io.FileInputStream
+import java.io.FileOutputStream
+import androidx.core.content.edit
 
 private const val PROFIL_NOTIFICATION_CHANNEL_ID = "profil_notifications"
 private const val PROFIL_NOTIFICATION_GROUP_KEY = "profil_notification_group"
+
+// Stockage local de la photo de profil (dans le stockage interne de l'app)
+private const val PROFIL_PREFS_NAME = "profil_prefs"
+private const val PROFIL_PHOTO_PATH_KEY_PREFIX = "profil_photo_path_" // Clé différente par utilisateur
+private const val PROFIL_PHOTO_FILE_PREFIX = "photo_profil_"          // Fichier différent par utilisateur
 
 @Composable
 fun EcranProfilParametres(
@@ -52,6 +62,7 @@ fun EcranProfilParametres(
     viewModel: AuthViewModel
 ) {
     val context = LocalContext.current
+    val uid = viewModel.utilisateurCourant?.uid.orEmpty() // UID de l'utilisateur courant (sert à isoler la photo)
 
     // ---------- PERMISSION NOTIFICATIONS ----------
     var hasNotificationPermission by remember {
@@ -84,16 +95,46 @@ fun EcranProfilParametres(
 
     var langueInitiale by rememberSaveable { mutableStateOf("") } // langue sauvegardée
 
-    // Photo locale (caméra, non persistée)
+    // Photo locale (caméra, persistée localement)
     var photoBitmap by remember { mutableStateOf<Bitmap?>(null) }
+
+    // Sauvegarde la photo dans le stockage interne et retourne le chemin
+    fun sauvegarderPhotoLocalement(bitmap: Bitmap): String {
+        val fichier = File(context.filesDir, "$PROFIL_PHOTO_FILE_PREFIX$uid.jpg") // Un fichier par utilisateur
+        FileOutputStream(fichier).use { out ->
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 90, out)
+        }
+        return fichier.absolutePath
+    }
+
+    // Charge une photo depuis un chemin local
+    fun chargerPhotoLocale(path: String): Bitmap? {
+        return try {
+            FileInputStream(File(path)).use { input ->
+                BitmapFactory.decodeStream(input)
+            }
+        } catch (e: Exception) {
+            null
+        }
+    }
 
     // Charger le profil au 1er affichage
     LaunchedEffect(Unit) {
         viewModel.chargerProfilUtilisateur()
+
+        // Recharge la photo sauvegardée localement de cet utilisateur si elle existe
+        if (uid.isNotBlank()) {
+            val prefs = context.getSharedPreferences(PROFIL_PREFS_NAME, Context.MODE_PRIVATE)
+            val key = "$PROFIL_PHOTO_PATH_KEY_PREFIX$uid"
+            val path = prefs.getString(key, null)
+            if (!path.isNullOrBlank()) {
+                photoBitmap = chargerPhotoLocale(path)
+            }
+        }
     }
 
     // Quand le profil change (DB), on remplit les champs
-    // IMPORTANT: écouter aussi profilState?.langue (pas seulement l'id)
+    //  écouter aussi profilState?.langue (pas seulement l'id)
     LaunchedEffect(profilState?.id, profilState?.langue, profilState?.notificationsActives, profilState?.nomAffiche) {
         profilState?.let {
             nomAffiche = it.nomAffiche
@@ -114,6 +155,14 @@ fun EcranProfilParametres(
         rememberLauncherForActivityResult(ActivityResultContracts.TakePicturePreview()) { bitmap ->
             if (bitmap != null) {
                 photoBitmap = bitmap
+
+                // Sauvegarde la photo localement pour cet utilisateur
+                if (uid.isNotBlank()) {
+                    val path = sauvegarderPhotoLocalement(bitmap)
+                    val prefs = context.getSharedPreferences(PROFIL_PREFS_NAME, Context.MODE_PRIVATE)
+                    val key = "$PROFIL_PHOTO_PATH_KEY_PREFIX$uid"
+                    prefs.edit { putString(key, path) }
+                }
             }
         }
 
@@ -313,7 +362,7 @@ fun EcranProfilParametres(
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    // IMPORTANT: on ne change pas l'app ici, seulement la sélection
+                    //  on ne change pas l'app ici, seulement la sélection
                     TextButton(onClick = { langue = "fr" }) {
                         Text(stringResource(R.string.lang_fr_short))
                     }
@@ -322,7 +371,7 @@ fun EcranProfilParametres(
                     }
                 }
 
-                // IMPORTANT: afficher la langue sauvegardée, pas la sélection
+                //  afficher la langue sauvegardée, pas la sélection
                 Text(
                     text = if (langueInitiale.startsWith("fr"))
                         stringResource(R.string.current_language_french)
