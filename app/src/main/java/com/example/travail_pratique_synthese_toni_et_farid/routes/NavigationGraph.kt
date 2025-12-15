@@ -54,11 +54,9 @@ fun NavigationGraph(
                                 // Navigation sans recréer plusieurs fois le même écran
                                 navController.navigate(item.route) {
                                     launchSingleTop = true
-                                    restoreState = true
-                                    popUpTo(Routes.Accueil.route) {
-                                        saveState = true
-                                    }
+                                    popUpTo(Routes.Accueil.route) { inclusive = false }
                                 }
+
                             },
                             icon = {
                                 Icon(
