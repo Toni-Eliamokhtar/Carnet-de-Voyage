@@ -5,6 +5,8 @@ import android.graphics.BitmapFactory
 import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
@@ -33,6 +35,8 @@ fun EcranDetailLieu(
     lieuId: String,
     lieuxViewModel: LieuxViewModel = viewModel()
 ) {
+    val scrollState = rememberScrollState()
+
     val lieux by lieuxViewModel.lieux.collectAsState()
     val lieu = lieux.find { it.id == lieuId }
     val context = LocalContext.current
@@ -56,6 +60,8 @@ fun EcranDetailLieu(
             modifier = Modifier
                 .padding(padding)
                 .padding(16.dp)
+                .fillMaxSize()
+                .verticalScroll(scrollState)
         ) {
             if (lieu == null) {
                 Text(stringResource(R.string.place_not_found))
@@ -196,6 +202,8 @@ fun EcranDetailLieu(
                     Text(stringResource(R.string.open_google_maps))
                 }
             }
+
+            Spacer(Modifier.height(24.dp))
         }
     }
 }

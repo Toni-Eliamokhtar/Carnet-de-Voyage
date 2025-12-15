@@ -11,6 +11,8 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
@@ -39,6 +41,7 @@ fun EcranFormLieu(
     lieuxViewModel: LieuxViewModel = viewModel()
 ) {
     val context = LocalContext.current
+    val scrollState = rememberScrollState()
 
     val lieux by lieuxViewModel.lieux.collectAsState(initial = emptyList())
     val lieuAModifier = remember(lieuId, lieux) {
@@ -113,13 +116,9 @@ fun EcranFormLieu(
     // Permission localisation
     val demandePermissionLocalisation =
         rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { autorisee ->
-            if (autorisee) {
-                // re-check pour calmer Lint + sécurité
-                lirePositionActuelle()
-            } else {
-                messageErreurLocalisation =
-                    context.getString(R.string.error_location_permission_denied)
-            }
+            if (autorisee) lirePositionActuelle()
+            else messageErreurLocalisation =
+                context.getString(R.string.error_location_permission_denied)
         }
 
     // Caméra
@@ -171,6 +170,7 @@ fun EcranFormLieu(
                 .padding(padding)
                 .padding(16.dp)
                 .fillMaxSize()
+                .verticalScroll(scrollState)
         ) {
             OutlinedTextField(
                 value = nom,
@@ -326,6 +326,8 @@ fun EcranFormLieu(
             ) {
                 Text(texteBouton)
             }
+
+            Spacer(Modifier.height(24.dp))
         }
     }
 }
