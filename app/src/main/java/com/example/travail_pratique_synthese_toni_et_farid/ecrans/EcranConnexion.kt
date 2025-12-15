@@ -13,6 +13,12 @@ import com.example.travail_pratique_synthese_toni_et_farid.Modele.EtatConnexion
 import com.example.travail_pratique_synthese_toni_et_farid.R
 import com.example.travail_pratique_synthese_toni_et_farid.Viewmodel.AuthViewModel
 import com.example.travail_pratique_synthese_toni_et_farid.routes.Routes
+import android.content.res.Configuration
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.Alignment
+
 
 @Composable
 fun EcranConnexion(
@@ -40,104 +46,203 @@ fun EcranConnexion(
         }
     }
 
+    val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
+    val scrollState = rememberScrollState()
+
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .verticalScroll(scrollState)
             .padding(16.dp)
     ) {
         Text(stringResource(R.string.auth_title), style = MaterialTheme.typography.headlineSmall)
 
         Spacer(Modifier.height(16.dp))
 
-        OutlinedTextField(
-            value = courriel,
-            onValueChange = {
-                courriel = it
-                messageReset = null // Efface le message quand l'utilisateur modifie le courriel
-            },
-            label = { Text(stringResource(R.string.email)) },
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        OutlinedTextField(
-            value = motPasse,
-            onValueChange = { motPasse = it },
-            label = { Text(stringResource(R.string.password)) },
-            modifier = Modifier.fillMaxWidth(),
-            visualTransformation = PasswordVisualTransformation()
-        )
-
-        Spacer(Modifier.height(8.dp))
-
-        // Bouton pour envoyer le courriel de réinitialisation du mot de passe
-        TextButton(
-            onClick = {
-                viewModel.reinitialiserMotPasse(courriel) { succes, msg ->
-                    resetSucces = succes
-                    messageReset = msg
-                }
-            },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text(stringResource(R.string.forgot_password))
-        }
-
-        Spacer(Modifier.height(8.dp))
-
-        Button(
-            onClick = { viewModel.connexion(courriel, motPasse) },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text(stringResource(R.string.sign_in))
-        }
-
-        Spacer(Modifier.height(8.dp))
-
-        OutlinedButton(
-            onClick = { viewModel.creerCompte(courriel, motPasse) },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text(stringResource(R.string.create_account))
-        }
-
-        Spacer(Modifier.height(16.dp))
-
-        // Affiche le résultat du reset de mot de passe (succès ou erreur)
-        messageReset?.let { msg ->
-            Text(
-                text = msg,
-                color = if (resetSucces) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
-            )
-            Spacer(Modifier.height(8.dp))
-        }
-
-        when (etat) {
-            is EtatConnexion.Chargement -> {
-                Text(stringResource(R.string.logging_in))
-            }
-            is EtatConnexion.Erreur -> {
-                Text(
-                    text = etat.message,
-                    color = MaterialTheme.colorScheme.error
-                )
-            }
-            is EtatConnexion.NonVerifie -> {
-                Text(
-                    text = stringResource(R.string.email_not_verified),
-                    color = MaterialTheme.colorScheme.error
-                )
-
-                Spacer(Modifier.height(8.dp))
-
-                // Permet de renvoyer le courriel de vérification
-                OutlinedButton(
-                    onClick = { viewModel.renvoyerEmailVerification() },
-                    modifier = Modifier.fillMaxWidth()
+        if (isLandscape) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Text(stringResource(R.string.resend_verification_email))
+                    OutlinedTextField(
+                        value = courriel,
+                        onValueChange = {
+                            courriel = it
+                            messageReset = null
+                        },
+                        label = { Text(stringResource(R.string.email)) },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    OutlinedTextField(
+                        value = motPasse,
+                        onValueChange = { motPasse = it },
+                        label = { Text(stringResource(R.string.password)) },
+                        modifier = Modifier.fillMaxWidth(),
+                        visualTransformation = PasswordVisualTransformation()
+                    )
+
+                    TextButton(
+                        onClick = {
+                            viewModel.reinitialiserMotPasse(courriel) { succes, msg ->
+                                resetSucces = succes
+                                messageReset = msg
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(stringResource(R.string.forgot_password))
+                    }
+
+                    Button(
+                        onClick = { viewModel.connexion(courriel, motPasse) },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(stringResource(R.string.sign_in))
+                    }
+
+                    OutlinedButton(
+                        onClick = { viewModel.creerCompte(courriel, motPasse) },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(stringResource(R.string.create_account))
+                    }
+                }
+
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight(),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    horizontalAlignment = Alignment.Start
+                ) {
+                    messageReset?.let { msg ->
+                        Text(
+                            text = msg,
+                            color = if (resetSucces) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
+                        )
+                    }
+
+                    when (etat) {
+                        is EtatConnexion.Chargement -> {
+                            Text(stringResource(R.string.logging_in))
+                        }
+                        is EtatConnexion.Erreur -> {
+                            Text(
+                                text = etat.message,
+                                color = MaterialTheme.colorScheme.error
+                            )
+                        }
+                        is EtatConnexion.NonVerifie -> {
+                            Text(
+                                text = stringResource(R.string.email_not_verified),
+                                color = MaterialTheme.colorScheme.error
+                            )
+
+                            OutlinedButton(
+                                onClick = { viewModel.renvoyerEmailVerification() },
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text(stringResource(R.string.resend_verification_email))
+                            }
+                        }
+                        else -> Unit
+                    }
                 }
             }
-            else -> Unit
+        } else {
+            OutlinedTextField(
+                value = courriel,
+                onValueChange = {
+                    courriel = it
+                    messageReset = null
+                },
+                label = { Text(stringResource(R.string.email)) },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            OutlinedTextField(
+                value = motPasse,
+                onValueChange = { motPasse = it },
+                label = { Text(stringResource(R.string.password)) },
+                modifier = Modifier.fillMaxWidth(),
+                visualTransformation = PasswordVisualTransformation()
+            )
+
+            Spacer(Modifier.height(8.dp))
+
+            TextButton(
+                onClick = {
+                    viewModel.reinitialiserMotPasse(courriel) { succes, msg ->
+                        resetSucces = succes
+                        messageReset = msg
+                    }
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(stringResource(R.string.forgot_password))
+            }
+
+            Spacer(Modifier.height(8.dp))
+
+            Button(
+                onClick = { viewModel.connexion(courriel, motPasse) },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(stringResource(R.string.sign_in))
+            }
+
+            Spacer(Modifier.height(8.dp))
+
+            OutlinedButton(
+                onClick = { viewModel.creerCompte(courriel, motPasse) },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(stringResource(R.string.create_account))
+            }
+
+            Spacer(Modifier.height(16.dp))
+
+            messageReset?.let { msg ->
+                Text(
+                    text = msg,
+                    color = if (resetSucces) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
+                )
+                Spacer(Modifier.height(8.dp))
+            }
+
+            when (etat) {
+                is EtatConnexion.Chargement -> {
+                    Text(stringResource(R.string.logging_in))
+                }
+                is EtatConnexion.Erreur -> {
+                    Text(
+                        text = etat.message,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+                is EtatConnexion.NonVerifie -> {
+                    Text(
+                        text = stringResource(R.string.email_not_verified),
+                        color = MaterialTheme.colorScheme.error
+                    )
+
+                    Spacer(Modifier.height(8.dp))
+
+                    OutlinedButton(
+                        onClick = { viewModel.renvoyerEmailVerification() },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(stringResource(R.string.resend_verification_email))
+                    }
+                }
+                else -> Unit
+            }
         }
     }
+
 }

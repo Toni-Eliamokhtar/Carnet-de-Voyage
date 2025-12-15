@@ -276,6 +276,9 @@ fun EcranProfilParametres(
 
     // ------------------- UI -----------------------
     val scrollState = rememberScrollState() // Permet de faire défiler l'écran si le contenu dépasse
+    val isLandscape =
+        androidx.compose.ui.platform.LocalConfiguration.current.orientation ==
+                android.content.res.Configuration.ORIENTATION_LANDSCAPE
 
     Column(
         modifier = Modifier
@@ -290,145 +293,296 @@ fun EcranProfilParametres(
             style = MaterialTheme.typography.titleLarge
         )
 
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+        if (isLandscape) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-
-                if (photoBitmap != null) {
-                    Image(
-                        bitmap = photoBitmap!!.asImageBitmap(),
-                        contentDescription = stringResource(R.string.profile_photo_cd),
-                        modifier = Modifier
-                            .size(96.dp)
-                            .clip(CircleShape)
-                    )
-                } else {
-                    Box(
-                        modifier = Modifier
-                            .size(96.dp)
-                            .clip(CircleShape),
-                        contentAlignment = Alignment.Center
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                     ) {
-                        Text(stringResource(R.string.photo_placeholder))
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+
+                            if (photoBitmap != null) {
+                                Image(
+                                    bitmap = photoBitmap!!.asImageBitmap(),
+                                    contentDescription = stringResource(R.string.profile_photo_cd),
+                                    modifier = Modifier
+                                        .size(96.dp)
+                                        .clip(CircleShape)
+                                )
+                            } else {
+                                Box(
+                                    modifier = Modifier
+                                        .size(96.dp)
+                                        .clip(CircleShape),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(stringResource(R.string.photo_placeholder))
+                                }
+                            }
+
+                            Button(onClick = { cameraLauncher.launch(null) }) {
+                                Text(stringResource(R.string.take_picture))
+                            }
+
+                            OutlinedTextField(
+                                value = nomAffiche,
+                                onValueChange = { nomAffiche = it },
+                                label = { Text(stringResource(R.string.display_name)) },
+                                modifier = Modifier.fillMaxWidth()
+                            )
+
+                            Text(
+                                text = courriel.ifBlank { stringResource(R.string.unknown_email) },
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+
+                            Button(
+                                onClick = { sauvegarderProfil() },
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text(stringResource(R.string.save_profile))
+                            }
+                        }
+                    }
+
+                    Button(
+                        onClick = {
+                            viewModel.deconnexion()
+                            navController.navigate(Routes.Connexion.route) {
+                                popUpTo(Routes.Accueil.route) { inclusive = true }
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(stringResource(R.string.logout))
                     }
                 }
 
-                Button(onClick = { cameraLauncher.launch(null) }) {
-                    Text(stringResource(R.string.take_picture))
-                }
-
-                OutlinedTextField(
-                    value = nomAffiche,
-                    onValueChange = { nomAffiche = it },
-                    label = { Text(stringResource(R.string.display_name)) },
-                    modifier = Modifier.fillMaxWidth()
-                )
-
-                Text(
-                    text = courriel.ifBlank { stringResource(R.string.unknown_email) },
-                    style = MaterialTheme.typography.bodyMedium
-                )
-
-                Button(
-                    onClick = { sauvegarderProfil() },
-                    modifier = Modifier.fillMaxWidth()
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    Text(stringResource(R.string.save_profile))
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Text(stringResource(R.string.language), style = MaterialTheme.typography.titleMedium)
+
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                TextButton(onClick = { langue = "fr" }) {
+                                    Text(stringResource(R.string.lang_fr_short))
+                                }
+                                TextButton(onClick = { langue = "en" }) {
+                                    Text(stringResource(R.string.lang_en_short))
+                                }
+                            }
+
+                            Text(
+                                text = if (langueInitiale.startsWith("fr"))
+                                    stringResource(R.string.current_language_french)
+                                else
+                                    stringResource(R.string.current_language_english)
+                            )
+                        }
+                    }
+
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+
+                            Text(
+                                text = stringResource(R.string.local_notifications),
+                                style = MaterialTheme.typography.titleMedium
+                            )
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(text = stringResource(R.string.enable_notifications))
+                                Switch(
+                                    checked = notificationsActives,
+                                    onCheckedChange = { notificationsActives = it }
+                                )
+                            }
+
+                            Button(
+                                onClick = { envoyerNotificationTest() },
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text(stringResource(R.string.test_notification))
+                            }
+                        }
+                    }
                 }
             }
-        }
-
-        // --- Changement de langue FR / EN ---
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+        } else {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
             ) {
-                Text(stringResource(R.string.language), style = MaterialTheme.typography.titleMedium)
-
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    //  on ne change pas l'app ici, seulement la sélection
-                    TextButton(onClick = { langue = "fr" }) {
-                        Text(stringResource(R.string.lang_fr_short))
+
+                    if (photoBitmap != null) {
+                        Image(
+                            bitmap = photoBitmap!!.asImageBitmap(),
+                            contentDescription = stringResource(R.string.profile_photo_cd),
+                            modifier = Modifier
+                                .size(96.dp)
+                                .clip(CircleShape)
+                        )
+                    } else {
+                        Box(
+                            modifier = Modifier
+                                .size(96.dp)
+                                .clip(CircleShape),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(stringResource(R.string.photo_placeholder))
+                        }
                     }
-                    TextButton(onClick = { langue = "en" }) {
-                        Text(stringResource(R.string.lang_en_short))
+
+                    Button(onClick = { cameraLauncher.launch(null) }) {
+                        Text(stringResource(R.string.take_picture))
+                    }
+
+                    OutlinedTextField(
+                        value = nomAffiche,
+                        onValueChange = { nomAffiche = it },
+                        label = { Text(stringResource(R.string.display_name)) },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    Text(
+                        text = courriel.ifBlank { stringResource(R.string.unknown_email) },
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+
+                    Button(
+                        onClick = { sauvegarderProfil() },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(stringResource(R.string.save_profile))
                     }
                 }
-
-                //  afficher la langue sauvegardée, pas la sélection
-                Text(
-                    text = if (langueInitiale.startsWith("fr"))
-                        stringResource(R.string.current_language_french)
-                    else
-                        stringResource(R.string.current_language_english)
-                )
             }
-        }
 
-        // --- Notifications locales ---
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-        ) {
-            Column( // Conteneur du contenu de la carte notifications
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
             ) {
-
-                Text(
-                    text = stringResource(R.string.local_notifications),
-                    style = MaterialTheme.typography.titleMedium
-                )
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Text(text = stringResource(R.string.enable_notifications))
-                    Switch(
-                        checked = notificationsActives,
-                        onCheckedChange = { notificationsActives = it }
+                    Text(stringResource(R.string.language), style = MaterialTheme.typography.titleMedium)
+
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        TextButton(onClick = { langue = "fr" }) {
+                            Text(stringResource(R.string.lang_fr_short))
+                        }
+                        TextButton(onClick = { langue = "en" }) {
+                            Text(stringResource(R.string.lang_en_short))
+                        }
+                    }
+
+                    Text(
+                        text = if (langueInitiale.startsWith("fr"))
+                            stringResource(R.string.current_language_french)
+                        else
+                            stringResource(R.string.current_language_english)
                     )
                 }
+            }
 
-                Button(
-                    onClick = { envoyerNotificationTest() },
-                    modifier = Modifier.fillMaxWidth()
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Text(stringResource(R.string.test_notification))
+
+                    Text(
+                        text = stringResource(R.string.local_notifications),
+                        style = MaterialTheme.typography.titleMedium
+                    )
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(text = stringResource(R.string.enable_notifications))
+                        Switch(
+                            checked = notificationsActives,
+                            onCheckedChange = { notificationsActives = it }
+                        )
+                    }
+
+                    Button(
+                        onClick = { envoyerNotificationTest() },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(stringResource(R.string.test_notification))
+                    }
                 }
             }
-        }
 
-        Button(
-            onClick = {
-                viewModel.deconnexion()
-                navController.navigate(Routes.Connexion.route) {
-                    popUpTo(Routes.Accueil.route) { inclusive = true }
-                }
-            },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text(stringResource(R.string.logout))
+            Button(
+                onClick = {
+                    viewModel.deconnexion()
+                    navController.navigate(Routes.Connexion.route) {
+                        popUpTo(Routes.Accueil.route) { inclusive = true }
+                    }
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(stringResource(R.string.logout))
+            }
         }
     }
+
 }
