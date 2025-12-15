@@ -11,6 +11,8 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -29,10 +31,6 @@ import com.google.android.gms.location.Priority
 import java.io.File
 import java.io.FileOutputStream
 
-/* Écran qui gère :
-- L'ajout d'un lieu avec formulaire
-- La géolocalisation et les permissions associées
-*/
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EcranFormLieu(
@@ -47,30 +45,33 @@ fun EcranFormLieu(
         if (lieuId.isNullOrBlank()) null else lieux.firstOrNull { it.id == lieuId }
     }
 
-    // États des champs du formulaire
+    val modeAjout = lieuId.isNullOrBlank()
+    val titre = if (modeAjout) "Ajouter un lieu" else "Modifier le lieu"
+    val texteBouton = if (modeAjout) "Ajouter" else "Enregistrer"
+
+    // Champs
     var nom by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var adresse by remember { mutableStateOf("") }
 
-    // Gestion de l'image (chemin local + aperçu)
+    // Image
     var imagePath by remember { mutableStateOf("") }
     var imagePreviewBitmap by remember { mutableStateOf<Bitmap?>(null) }
     var messageErreurImage by remember { mutableStateOf<String?>(null) }
 
-    // Message d'erreur pour le champ nom (il est obligatoire)
+    // Erreurs formulaire
     var errorNom by remember { mutableStateOf<String?>(null) }
     var errorAdresse by remember { mutableStateOf<String?>(null) }
 
-    // --- Gestion de la géolocalisation (latitude / longitude de l'utilisateur) ---
+    // Localisation
     val fournisseurLocalisation = remember {
         LocationServices.getFusedLocationProviderClient(context)
     }
-
     var latitude by remember { mutableStateOf<Double?>(null) }
     var longitude by remember { mutableStateOf<Double?>(null) }
     var messageErreurLocalisation by remember { mutableStateOf<String?>(null) }
 
-    // Pré-remplissage en mode modification
+    // Pré-remplissage en modification
     LaunchedEffect(lieuAModifier?.id) {
         lieuAModifier?.let { lieu ->
             nom = lieu.nom
@@ -78,88 +79,91 @@ fun EcranFormLieu(
             adresse = lieu.adresse
             latitude = lieu.latitude
             longitude = lieu.longitude
-
             imagePath = lieu.imageUrl
-            imagePreviewBitmap = if (lieu.imageUrl.isNotBlank()) {
-                BitmapFactory.decodeFile(lieu.imageUrl)
-            } else {
-                null
-            }
+            imagePreviewBitmap =
+                if (lieu.imageUrl.isNotBlank()) BitmapFactory.decodeFile(lieu.imageUrl) else null
         }
     }
 
-    // Gestionnaire de permission pour la localisation
-    val demandePermissionLocalisation = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission()
-    ) { autorisee ->
-        if (autorisee) {
-            fournisseurLocalisation.getCurrentLocation(
-                Priority.PRIORITY_HIGH_ACCURACY,
-                null
-            ).addOnSuccessListener { localisation ->
-                localisation?.let {
-                    latitude = it.latitude
-                    longitude = it.longitude
+    fun lirePositionActuelle() {
+        val permissionOk = ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.ACCESS_FINE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
+
+        if (!permissionOk) {
+            messageErreurLocalisation = context.getString(R.string.error_location_permission_denied)
+            return
+        }
+
+        fournisseurLocalisation.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, null)
+            .addOnSuccessListener { loc ->
+                if (loc != null) {
+                    latitude = loc.latitude
+                    longitude = loc.longitude
                     adresse = context.getString(R.string.current_position)
+                    errorAdresse = null
                     messageErreurLocalisation = null
-                } ?: run {
-                    messageErreurLocalisation =
-                        context.getString(R.string.error_location_unavailable)
+                } else {
+                    messageErreurLocalisation = context.getString(R.string.error_location_unavailable)
                 }
             }
-        } else {
-            messageErreurLocalisation =
-                context.getString(R.string.error_location_permission_denied)
-        }
     }
 
-    // Launchers caméra + galerie
-    val lancerCamera = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.TakePicturePreview()
-    ) { bitmap ->
-        if (bitmap != null) {
-            val chemin = sauvegarderBitmapEnLocal(context.filesDir, bitmap)
-            imagePath = chemin
-            imagePreviewBitmap = bitmap
-            messageErreurImage = null
-        } else {
-            messageErreurImage = "Aucune image capturée."
+    // Permission localisation
+    val demandePermissionLocalisation =
+        rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { autorisee ->
+            if (autorisee) {
+                // re-check pour calmer Lint + sécurité
+                lirePositionActuelle()
+            } else {
+                messageErreurLocalisation =
+                    context.getString(R.string.error_location_permission_denied)
+            }
         }
-    }
 
-    val choisirGalerie = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
-    ) { uri ->
-        if (uri != null) {
-            try {
-                val bitmap = chargerBitmapDepuisUri(context, uri)
-                val chemin = sauvegarderUriEnLocal(context, uri)
-                imagePath = chemin
+    // Caméra
+    val lancerCamera =
+        rememberLauncherForActivityResult(ActivityResultContracts.TakePicturePreview()) { bitmap ->
+            if (bitmap != null) {
+                imagePath = sauvegarderBitmapEnLocal(context.filesDir, bitmap)
                 imagePreviewBitmap = bitmap
                 messageErreurImage = null
-            } catch (e: Exception) {
-                messageErreurImage = "Erreur lors du chargement de l'image."
+            } else {
+                messageErreurImage = "Aucune image capturée."
             }
-        } else {
-            messageErreurImage = "Aucune image sélectionnée."
         }
-    }
 
-    val titre = if (lieuId.isNullOrBlank()) {
-        "Ajouter un lieu"
-    } else {
-        "Modifier le lieu"
-    }
-
-    val texteBouton = if (lieuId.isNullOrBlank()) {
-        "Ajouter"
-    } else {
-        "Enregistrer"
-    }
+    // Galerie
+    val choisirGalerie =
+        rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+            if (uri != null) {
+                try {
+                    val bitmap = chargerBitmapDepuisUri(context, uri)
+                    imagePath = sauvegarderUriEnLocal(context, uri)
+                    imagePreviewBitmap = bitmap
+                    messageErreurImage = null
+                } catch (e: Exception) {
+                    messageErreurImage = "Erreur lors du chargement de l'image."
+                }
+            } else {
+                messageErreurImage = "Aucune image sélectionnée."
+            }
+        }
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text(titre) })
+            TopAppBar(
+                title = { Text(titre) },
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(
+                            imageVector = Icons.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.back)
+                        )
+                    }
+                }
+            )
         }
     ) { padding ->
         Column(
@@ -168,8 +172,6 @@ fun EcranFormLieu(
                 .padding(16.dp)
                 .fillMaxSize()
         ) {
-
-            // 🔹 Formulaire d'ajout d'un lieu
             OutlinedTextField(
                 value = nom,
                 onValueChange = {
@@ -180,7 +182,6 @@ fun EcranFormLieu(
                 modifier = Modifier.fillMaxWidth(),
                 isError = errorNom != null
             )
-
             if (errorNom != null) {
                 Text(
                     text = errorNom!!,
@@ -212,7 +213,6 @@ fun EcranFormLieu(
                 modifier = Modifier.fillMaxWidth(),
                 isError = errorAdresse != null
             )
-
             if (errorAdresse != null) {
                 Text(
                     text = errorAdresse!!,
@@ -223,7 +223,7 @@ fun EcranFormLieu(
 
             Spacer(Modifier.height(12.dp))
 
-            // Section Multimédia (caméra + galerie) + aperçu
+            // Photo
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -231,16 +231,12 @@ fun EcranFormLieu(
                 OutlinedButton(
                     onClick = { lancerCamera.launch(null) },
                     modifier = Modifier.weight(1f)
-                ) {
-                    Text("Caméra")
-                }
+                ) { Text("Caméra") }
 
                 OutlinedButton(
                     onClick = { choisirGalerie.launch("image/*") },
                     modifier = Modifier.weight(1f)
-                ) {
-                    Text("Galerie")
-                }
+                ) { Text("Galerie") }
             }
 
             if (messageErreurImage != null) {
@@ -252,10 +248,10 @@ fun EcranFormLieu(
                 )
             }
 
-            imagePreviewBitmap?.let { bmp ->
+            imagePreviewBitmap?.let {
                 Spacer(Modifier.height(10.dp))
                 Image(
-                    bitmap = bmp.asImageBitmap(),
+                    bitmap = it.asImageBitmap(),
                     contentDescription = "Aperçu de la photo",
                     modifier = Modifier
                         .fillMaxWidth()
@@ -265,49 +261,24 @@ fun EcranFormLieu(
 
             Spacer(Modifier.height(12.dp))
 
+            // Localisation
             Button(
                 onClick = {
-                    val permissionState = ContextCompat.checkSelfPermission(
+                    val permissionOk = ContextCompat.checkSelfPermission(
                         context,
                         Manifest.permission.ACCESS_FINE_LOCATION
-                    )
+                    ) == PackageManager.PERMISSION_GRANTED
 
-                    if (permissionState == PackageManager.PERMISSION_GRANTED) {
-                        fournisseurLocalisation.getCurrentLocation(
-                            Priority.PRIORITY_HIGH_ACCURACY,
-                            null
-                        ).addOnSuccessListener { localisation ->
-                            localisation?.let {
-                                latitude = it.latitude
-                                longitude = it.longitude
-                                adresse = context.getString(R.string.current_position)
-                                messageErreurLocalisation = null
-                            } ?: run {
-                                messageErreurLocalisation =
-                                    context.getString(R.string.error_location_unavailable)
-                            }
-                        }
-                    } else {
-                        demandePermissionLocalisation.launch(
-                            Manifest.permission.ACCESS_FINE_LOCATION
-                        )
-                    }
+                    if (permissionOk) lirePositionActuelle()
+                    else demandePermissionLocalisation.launch(Manifest.permission.ACCESS_FINE_LOCATION)
                 },
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(stringResource(R.string.use_my_current_position))
             }
 
-            latitude?.let { lat ->
-                longitude?.let { lon ->
-                    Spacer(Modifier.height(8.dp))
-                    Text(stringResource(R.string.latitude_label, lat.toString()))
-                    Text(stringResource(R.string.longitude_label, lon.toString()))
-                }
-            }
-
             if (messageErreurLocalisation != null) {
-                Spacer(Modifier.height(4.dp))
+                Spacer(Modifier.height(6.dp))
                 Text(
                     text = messageErreurLocalisation!!,
                     color = MaterialTheme.colorScheme.error,
@@ -317,58 +288,49 @@ fun EcranFormLieu(
 
             Spacer(Modifier.height(12.dp))
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            // Submit
+            Button(
+                onClick = {
+                    if (nom.isBlank()) {
+                        errorNom = context.getString(R.string.error_place_name_required)
+                        return@Button
+                    }
+
+                    if (latitude == null && adresse.isBlank()) {
+                        errorAdresse = context.getString(R.string.error_address_or_position_required)
+                        return@Button
+                    }
+
+                    if (modeAjout && imagePath.isBlank()) {
+                        messageErreurImage = "Une photo est obligatoire."
+                        return@Button
+                    }
+
+                    val lieu = Lieu(
+                        id = if (modeAjout) "" else (lieuId ?: ""),
+                        nom = nom,
+                        description = description,
+                        latitude = latitude ?: 0.0,
+                        longitude = longitude ?: 0.0,
+                        adresse = adresse,
+                        imageUrl = imagePath,
+                        userId = "demo"
+                    )
+
+                    if (modeAjout) lieuxViewModel.ajouterLieu(lieu)
+                    else lieuxViewModel.modifierLieu(lieu)
+
+                    navController.popBackStack()
+                },
+                modifier = Modifier.fillMaxWidth()
             ) {
-                OutlinedButton(
-                    onClick = { navController.popBackStack() },
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text(stringResource(R.string.back))
-                }
-
-                Button(
-                    onClick = {
-                        if (nom.isBlank()) {
-                            errorNom = context.getString(R.string.error_place_name_required)
-                            return@Button
-                        }
-
-                        if (latitude == null && adresse.isBlank()) {
-                            errorAdresse = context.getString(R.string.error_address_or_position_required)
-                            return@Button
-                        }
-
-                        val idFinal = if (lieuId.isNullOrBlank()) "" else lieuId
-
-                        val lieu = Lieu(
-                            id = idFinal,
-                            nom = nom,
-                            description = description,
-                            latitude = latitude ?: 0.0,
-                            longitude = longitude ?: 0.0,
-                            adresse = adresse,
-                            imageUrl = imagePath,
-                            userId = "demo"
-                        )
-
-                        if (lieuId.isNullOrBlank()) {
-                            lieuxViewModel.ajouterLieu(lieu)
-                        } else {
-                            lieuxViewModel.modifierLieu(lieu)
-                        }
-
-                        navController.popBackStack()
-                    },
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text(texteBouton)
-                }
+                Text(texteBouton)
             }
         }
     }
 }
+
+/* ---------- Helpers ---------- */
 
 private fun sauvegarderBitmapEnLocal(baseDir: File, bitmap: Bitmap): String {
     val dossier = File(baseDir, "lieux_images")
@@ -388,9 +350,7 @@ private fun sauvegarderUriEnLocal(context: android.content.Context, uri: android
     val fichier = File(dossier, "lieu_${System.currentTimeMillis()}.jpg")
     context.contentResolver.openInputStream(uri).use { input ->
         if (input != null) {
-            FileOutputStream(fichier).use { output ->
-                input.copyTo(output)
-            }
+            FileOutputStream(fichier).use { output -> input.copyTo(output) }
         }
     }
     return fichier.absolutePath
@@ -399,12 +359,12 @@ private fun sauvegarderUriEnLocal(context: android.content.Context, uri: android
 private fun chargerBitmapDepuisUri(
     context: android.content.Context,
     uri: android.net.Uri
-): Bitmap {
-    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-        val source = ImageDecoder.createSource(context.contentResolver, uri)
-        ImageDecoder.decodeBitmap(source)
+): Bitmap =
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+        ImageDecoder.decodeBitmap(
+            ImageDecoder.createSource(context.contentResolver, uri)
+        )
     } else {
         @Suppress("DEPRECATION")
         MediaStore.Images.Media.getBitmap(context.contentResolver, uri)
     }
-}
