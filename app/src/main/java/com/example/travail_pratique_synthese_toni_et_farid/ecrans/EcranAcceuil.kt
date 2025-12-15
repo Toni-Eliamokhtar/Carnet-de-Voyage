@@ -43,6 +43,9 @@ fun EcranAccueil(
     val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
     val scrollState = rememberScrollState()
 
+    val profil by viewModel.profilUtilisateur.collectAsStateWithLifecycle()
+
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -59,10 +62,14 @@ fun EcranAccueil(
         Text(
             stringResource(
                 R.string.welcome_user,
-                user?.email ?: stringResource(R.string.unknown_user)
+                profil?.nomAffiche?.takeIf { it.isNotBlank() }
+                    ?: user?.email
+                    ?: stringResource(R.string.unknown_user)
             ),
             style = MaterialTheme.typography.bodyMedium
         )
+
+
 
         Spacer(Modifier.height(16.dp))
 
