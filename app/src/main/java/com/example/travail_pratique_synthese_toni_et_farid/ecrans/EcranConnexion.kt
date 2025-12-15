@@ -24,6 +24,10 @@ fun EcranConnexion(
 
     val etat = viewModel.etatConnexion.collectAsStateWithLifecycle().value
 
+    // Message local pour le reset du mot de passe (succès/erreur)
+    var messageReset by remember { mutableStateOf<String?>(null) }
+    var resetSucces by remember { mutableStateOf(false) }
+
     // Mode strict: navigation seulement si l'utilisateur est vérifié
     LaunchedEffect(etat) {
         when (etat) {
@@ -47,7 +51,10 @@ fun EcranConnexion(
 
         OutlinedTextField(
             value = courriel,
-            onValueChange = { courriel = it },
+            onValueChange = {
+                courriel = it
+                messageReset = null // Efface le message quand l'utilisateur modifie le courriel
+            },
             label = { Text(stringResource(R.string.email)) },
             modifier = Modifier.fillMaxWidth()
         )
@@ -60,7 +67,22 @@ fun EcranConnexion(
             visualTransformation = PasswordVisualTransformation()
         )
 
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(8.dp))
+
+        // Bouton pour envoyer le courriel de réinitialisation du mot de passe
+        TextButton(
+            onClick = {
+                viewModel.reinitialiserMotPasse(courriel) { succes, msg ->
+                    resetSucces = succes
+                    messageReset = msg
+                }
+            },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(stringResource(R.string.forgot_password))
+        }
+
+        Spacer(Modifier.height(8.dp))
 
         Button(
             onClick = { viewModel.connexion(courriel, motPasse) },
@@ -80,6 +102,15 @@ fun EcranConnexion(
 
         Spacer(Modifier.height(16.dp))
 
+        // Affiche le résultat du reset de mot de passe (succès ou erreur)
+        messageReset?.let { msg ->
+            Text(
+                text = msg,
+                color = if (resetSucces) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
+            )
+            Spacer(Modifier.height(8.dp))
+        }
+
         when (etat) {
             is EtatConnexion.Chargement -> {
                 Text(stringResource(R.string.logging_in))
@@ -91,7 +122,6 @@ fun EcranConnexion(
                 )
             }
             is EtatConnexion.NonVerifie -> {
-                // Message clair indiquant que l'email doit être vérifié
                 Text(
                     text = stringResource(R.string.email_not_verified),
                     color = MaterialTheme.colorScheme.error

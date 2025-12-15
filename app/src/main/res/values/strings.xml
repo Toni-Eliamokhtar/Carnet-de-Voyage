@@ -21,6 +21,8 @@
     <string name="email_not_verified_temp">Courriel non vérifié (plus tard on gérera ça)</string>
     <string name="email_not_verified">Votre courriel n’est pas vérifié. Veuillez consulter votre boîte de réception.</string>
     <string name="resend_verification_email">Renvoyer le courriel de vérification</string>
+    <string name="forgot_password">Mot de passe oublié ?</string>
+
 
 
     <!-- Liste lieux -->

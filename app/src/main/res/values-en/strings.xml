@@ -19,6 +19,7 @@
     <string name="email_not_verified_temp">Email not verified (we will handle this later)</string>
     <string name="email_not_verified">Your email address is not verified. Please check your inbox.</string>
     <string name="resend_verification_email">Resend verification email</string>
+    <string name="forgot_password">Forgot password?</string>
 
     <!-- Places list -->
     <string name="places_list_title">Places list</string>
