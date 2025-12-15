@@ -23,28 +23,34 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.ui.platform.LocalConfiguration
 
-
 /*
-* Écran d'accueil après la connexion
-*/
+ * Écran d'accueil affiché après la connexion
+ */
 @Composable
 fun EcranAccueil(
     navController: NavHostController,
     viewModel: AuthViewModel
 ) {
+    // Utilisateur Firebase actuellement connecté
     val user = viewModel.utilisateurCourant
 
-    val lieuxViewModel: LieuxViewModel = viewModel() // ViewModel des lieux pour afficher des stats
+    // ViewModel des lieux (sert à afficher des statistiques)
+    val lieuxViewModel: LieuxViewModel = viewModel()
     val lieux by lieuxViewModel.lieux.collectAsStateWithLifecycle()
 
+    // Données calculées pour le tableau de bord
     val totalLieux = lieux.size
     val dernierLieuNom = lieux.lastOrNull()?.nom?.takeIf { it.isNotBlank() } ?: "-"
 
-    val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
+    // Détection de l'orientation de l'écran
+    val isLandscape =
+        LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
+
+    // Permet de rendre l'écran scrollable
     val scrollState = rememberScrollState()
 
+    // Profil utilisateur venant du ViewModel Auth
     val profil by viewModel.profilUtilisateur.collectAsStateWithLifecycle()
-
 
     Column(
         modifier = Modifier
@@ -52,6 +58,8 @@ fun EcranAccueil(
             .verticalScroll(scrollState)
             .padding(16.dp)
     ) {
+
+        // Titre principal de l'écran
         Text(
             text = stringResource(R.string.home_title_places),
             style = MaterialTheme.typography.titleLarge
@@ -59,6 +67,7 @@ fun EcranAccueil(
 
         Spacer(Modifier.height(16.dp))
 
+        // Message de bienvenue (nom affiché ou courriel)
         Text(
             stringResource(
                 R.string.welcome_user,
@@ -69,15 +78,16 @@ fun EcranAccueil(
             style = MaterialTheme.typography.bodyMedium
         )
 
-
-
         Spacer(Modifier.height(16.dp))
 
+        // Mise en page différente selon l'orientation
         if (isLandscape) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
+
+                // Carte du tableau de bord
                 Card(
                     modifier = Modifier.weight(1f),
                     elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
@@ -95,10 +105,13 @@ fun EcranAccueil(
                     }
                 }
 
+                // Boutons de navigation
                 Column(
                     modifier = Modifier.weight(1f),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
+
+                    // Accès à la liste des lieux
                     Button(
                         onClick = {
                             navController.navigate(Routes.ListeLieux.route) {
@@ -110,6 +123,7 @@ fun EcranAccueil(
                         Text(stringResource(R.string.see_places))
                     }
 
+                    // Accès aux paramètres du profil
                     Button(
                         onClick = {
                             navController.navigate(Routes.Profil.route) {
@@ -121,6 +135,7 @@ fun EcranAccueil(
                         Text(stringResource(R.string.profile_settings))
                     }
 
+                    // Déconnexion et retour à l'écran de connexion
                     Button(
                         onClick = {
                             viewModel.deconnexion()
@@ -135,6 +150,8 @@ fun EcranAccueil(
                 }
             }
         } else {
+            // Mode portrait : affichage vertical
+
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
@@ -154,6 +171,7 @@ fun EcranAccueil(
 
             Spacer(Modifier.height(24.dp))
 
+            // Bouton vers la liste des lieux
             Button(
                 onClick = {
                     navController.navigate(Routes.ListeLieux.route) {
@@ -165,6 +183,7 @@ fun EcranAccueil(
                 Text(stringResource(R.string.see_places))
             }
 
+            // Bouton vers l'écran profil
             Button(
                 onClick = {
                     navController.navigate(Routes.Profil.route) {
@@ -178,6 +197,7 @@ fun EcranAccueil(
 
             Spacer(Modifier.height(16.dp))
 
+            // Bouton de déconnexion
             Button(
                 onClick = {
                     viewModel.deconnexion()
@@ -191,5 +211,4 @@ fun EcranAccueil(
             }
         }
     }
-
 }
