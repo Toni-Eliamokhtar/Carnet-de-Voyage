@@ -236,6 +236,26 @@ class AuthViewModel : ViewModel() {
         auth.currentUser?.sendEmailVerification()
     }
 
+
+    // Envoie un courriel de réinitialisation du mot de passe à l'adresse fournie
+    fun reinitialiserMotPasse(courriel: String, onResult: (Boolean, String) -> Unit = { _, _ -> }) {
+        if (courriel.isBlank()) {
+            onResult(false, "Veuillez entrer votre courriel")
+            return
+        }
+
+        auth.sendPasswordResetEmail(courriel.trim())
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    onResult(true, "Courriel de réinitialisation envoyé")
+                } else {
+                    val message = task.exception?.message ?: "Erreur lors de l'envoi du courriel"
+                    onResult(false, message)
+                }
+            }
+    }
+
+
     // --------------------------------------------------
     //   DÉCONNEXION
     // --------------------------------------------------
