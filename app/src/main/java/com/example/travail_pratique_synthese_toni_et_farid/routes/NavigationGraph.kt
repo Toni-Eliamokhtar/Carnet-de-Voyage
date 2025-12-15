@@ -13,6 +13,8 @@ import com.example.travail_pratique_synthese_toni_et_farid.ecrans.EcranConnexion
 import com.example.travail_pratique_synthese_toni_et_farid.ecrans.EcranListeLieux
 import com.example.travail_pratique_synthese_toni_et_farid.ecrans.EcranDetailLieu
 import com.example.travail_pratique_synthese_toni_et_farid.ecrans.EcranProfilParametres
+import com.example.travail_pratique_synthese_toni_et_farid.ecrans.EcranFormLieu
+
 
 /*
  Toutes les routes sont déclarées ici
@@ -68,6 +70,11 @@ fun NavigationGraph(
                 navController = navController,
                 lieuId = lieuId
             )
+        }
+
+        // Écran de gestion de lieux
+        composable(Routes.FormLieu.route) {
+            EcranFormLieu(navController)
         }
     }
 }

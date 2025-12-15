@@ -12,6 +12,9 @@ sealed class Routes(val route: String) {
         fun createRoute(lieuId: String) = "detail_lieu/$lieuId"
     }
 
+    // Route pour l'écran formulaire (ajout de lieu)
+    data object FormLieu : Routes("form_lieu")
+
     // Route pour l'écran profil / paramètres (Farid)
     data object Profil : Routes("profil_parametres")
 }
