@@ -17,6 +17,8 @@
     <string name="create_account">Create account</string>
     <string name="logging_in">Signing in…</string>
     <string name="email_not_verified_temp">Email not verified (we will handle this later)</string>
+    <string name="email_not_verified">Your email address is not verified. Please check your inbox.</string>
+    <string name="resend_verification_email">Resend verification email</string>
 
     <!-- Places list -->
     <string name="places_list_title">Places list</string>
