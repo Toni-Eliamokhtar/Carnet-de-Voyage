@@ -24,11 +24,10 @@ fun EcranConnexion(
 
     val etat = viewModel.etatConnexion.collectAsStateWithLifecycle().value
 
-    // Si déjà connecté, on va direct à l'accueil
+    // Mode strict: navigation seulement si l'utilisateur est vérifié
     LaunchedEffect(etat) {
         when (etat) {
-            is EtatConnexion.Authentifie,
-            is EtatConnexion.NonVerifie -> {
+            is EtatConnexion.Authentifie -> {
                 navController.navigate(Routes.Accueil.route) {
                     popUpTo(Routes.Connexion.route) { inclusive = true }
                 }
@@ -92,10 +91,21 @@ fun EcranConnexion(
                 )
             }
             is EtatConnexion.NonVerifie -> {
+                // Message clair indiquant que l'email doit être vérifié
                 Text(
-                    text = stringResource(R.string.email_not_verified_temp),
+                    text = stringResource(R.string.email_not_verified),
                     color = MaterialTheme.colorScheme.error
                 )
+
+                Spacer(Modifier.height(8.dp))
+
+                // Permet de renvoyer le courriel de vérification
+                OutlinedButton(
+                    onClick = { viewModel.renvoyerEmailVerification() },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(stringResource(R.string.resend_verification_email))
+                }
             }
             else -> Unit
         }
