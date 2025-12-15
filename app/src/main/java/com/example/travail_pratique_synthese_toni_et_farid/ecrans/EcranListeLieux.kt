@@ -23,7 +23,6 @@ import com.example.travail_pratique_synthese_toni_et_farid.Viewmodel.LieuxViewMo
 import com.example.travail_pratique_synthese_toni_et_farid.routes.Routes
 import androidx.compose.ui.Alignment
 
-
 /* Écran qui gère :
 - La liste des lieux (lecture depuis Firebase)
 - La suppression de lieux (écriture directe sur Firebase)
@@ -92,6 +91,13 @@ fun EcranListeLieux(
                                     Routes.DetailLieu.createRoute(lieu.id)
                                 )
                             }
+                        },
+                        onModifier = {
+                            if (lieu.id.isNotBlank()) {
+                                navController.navigate(
+                                    Routes.FormLieuModifier.createRoute(lieu.id)
+                                )
+                            }
                         }
                     )
                 }
@@ -104,7 +110,8 @@ fun EcranListeLieux(
 fun LieuItem(
     lieu: Lieu,
     onSupprimer: () -> Unit,
-    onVoirDetail: () -> Unit
+    onVoirDetail: () -> Unit,
+    onModifier: () -> Unit
 ) {
     Card(
         modifier = Modifier
@@ -124,10 +131,16 @@ fun LieuItem(
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )
+
             Spacer(Modifier.height(8.dp))
-            // Bouton de suppression du lieu
-            Button(onClick = onSupprimer) {
-                Text(stringResource(R.string.delete))
+
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Button(onClick = onModifier) {
+                    Text("Modifier")
+                }
+                Button(onClick = onSupprimer) {
+                    Text(stringResource(R.string.delete))
+                }
             }
         }
     }

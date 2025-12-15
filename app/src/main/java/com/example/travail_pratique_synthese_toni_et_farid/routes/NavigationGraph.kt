@@ -15,7 +15,6 @@ import com.example.travail_pratique_synthese_toni_et_farid.ecrans.EcranDetailLie
 import com.example.travail_pratique_synthese_toni_et_farid.ecrans.EcranProfilParametres
 import com.example.travail_pratique_synthese_toni_et_farid.ecrans.EcranFormLieu
 
-
 /*
  Toutes les routes sont déclarées ici
  */
@@ -72,9 +71,18 @@ fun NavigationGraph(
             )
         }
 
-        // Écran de gestion de lieux
+        // Écran de gestion de lieux (ajout)
         composable(Routes.FormLieu.route) {
-            EcranFormLieu(navController)
+            EcranFormLieu(navController = navController, lieuId = null)
+        }
+
+        // Écran de gestion de lieux (modification)
+        composable(
+            route = Routes.FormLieuModifier.route,
+            arguments = listOf(navArgument("lieuId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val lieuId = backStackEntry.arguments?.getString("lieuId")
+            EcranFormLieu(navController = navController, lieuId = lieuId)
         }
     }
 }

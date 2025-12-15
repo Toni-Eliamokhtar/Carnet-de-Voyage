@@ -28,9 +28,15 @@ import com.google.android.gms.location.Priority
 @Composable
 fun EcranFormLieu(
     navController: NavController,
+    lieuId: String?,
     lieuxViewModel: LieuxViewModel = viewModel()
 ) {
     val context = LocalContext.current
+
+    val lieux by lieuxViewModel.lieux.collectAsState(initial = emptyList())
+    val lieuAModifier = remember(lieuId, lieux) {
+        if (lieuId.isNullOrBlank()) null else lieux.firstOrNull { it.id == lieuId }
+    }
 
     // États des champs du formulaire
     var nom by remember { mutableStateOf("") }
@@ -49,6 +55,17 @@ fun EcranFormLieu(
     var latitude by remember { mutableStateOf<Double?>(null) }
     var longitude by remember { mutableStateOf<Double?>(null) }
     var messageErreurLocalisation by remember { mutableStateOf<String?>(null) }
+
+    // Pré-remplissage en mode modification
+    LaunchedEffect(lieuAModifier?.id) {
+        lieuAModifier?.let { lieu ->
+            nom = lieu.nom
+            description = lieu.description
+            adresse = lieu.adresse
+            latitude = lieu.latitude
+            longitude = lieu.longitude
+        }
+    }
 
     // Gestionnaire de permission pour la localisation
     val demandePermissionLocalisation = rememberLauncherForActivityResult(
@@ -75,9 +92,21 @@ fun EcranFormLieu(
         }
     }
 
+    val titre = if (lieuId.isNullOrBlank()) {
+        "Ajouter un lieu"
+    } else {
+        "Modifier le lieu"
+    }
+
+    val texteBouton = if (lieuId.isNullOrBlank()) {
+        "Ajouter"
+    } else {
+        "Enregistrer"
+    }
+
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text(stringResource(R.string.add_this_place)) })
+            TopAppBar(title = { Text(titre) })
         }
     ) { padding ->
         Column(
@@ -218,7 +247,10 @@ fun EcranFormLieu(
                             return@Button
                         }
 
+                        val idFinal = if (lieuId.isNullOrBlank()) "" else lieuId
+
                         val lieu = Lieu(
+                            id = idFinal,
                             nom = nom,
                             description = description,
                             latitude = latitude ?: 0.0,
@@ -228,13 +260,17 @@ fun EcranFormLieu(
                             userId = "demo"
                         )
 
-                        lieuxViewModel.ajouterLieu(lieu)
+                        if (lieuId.isNullOrBlank()) {
+                            lieuxViewModel.ajouterLieu(lieu)
+                        } else {
+                            lieuxViewModel.modifierLieu(lieu)
+                        }
 
                         navController.popBackStack()
                     },
                     modifier = Modifier.weight(1f)
                 ) {
-                    Text(stringResource(R.string.add_this_place))
+                    Text(texteBouton)
                 }
             }
         }

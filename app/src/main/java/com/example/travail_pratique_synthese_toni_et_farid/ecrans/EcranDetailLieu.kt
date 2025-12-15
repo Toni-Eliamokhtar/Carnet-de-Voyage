@@ -20,6 +20,7 @@ import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
+import com.example.travail_pratique_synthese_toni_et_farid.routes.Routes
 
 // Cet écran affiche les détails d'un lieu sélectionné dans la liste
 // Pour l'instant, il montre seulement les infos en texte, pas de google maps pas de rien.
@@ -70,6 +71,34 @@ fun EcranDetailLieu(
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(text = stringResource(R.string.address_label, lieu.adresse))
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Button(
+                    onClick = {
+                        navController.navigate(
+                            Routes.FormLieuModifier.createRoute(lieu.id)
+                        )
+                    },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text("Modifier")
+                }
+
+                Button(
+                    onClick = {
+                        lieuxViewModel.supprimerLieu(lieu.id)
+                        navController.popBackStack()
+                    },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(stringResource(R.string.delete))
+                }
+            }
+
             Spacer(modifier = Modifier.height(16.dp))
 
             // Mini-carte Google Maps centrée sur les coordonnées du lieu (si on a une vraie position)
