@@ -56,154 +56,172 @@ fun EcranDetailLieu(
             )
         }
     ) { padding ->
-        Column(
+        BoxWithConstraints(
             modifier = Modifier
-                .padding(padding)
-                .padding(16.dp)
                 .fillMaxSize()
-                .verticalScroll(scrollState)
+                .padding(padding)
+                .windowInsetsPadding(WindowInsets.safeDrawing)
         ) {
-            if (lieu == null) {
-                Text(stringResource(R.string.place_not_found))
-                return@Column
+            val photoHeight = when {
+                maxHeight < 420.dp -> 140.dp
+                maxHeight < 600.dp -> 180.dp
+                else -> 220.dp
             }
 
-            // Photo du lieu
-            if (lieu.imageUrl.isNotBlank()) {
-                val bitmap = remember(lieu.imageUrl) {
-                    BitmapFactory.decodeFile(lieu.imageUrl)
-                }
-
-                bitmap?.let {
-                    Image(
-                        bitmap = it.asImageBitmap(),
-                        contentDescription = "Photo du lieu",
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(220.dp)
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                }
+            val mapHeight = when {
+                maxHeight < 420.dp -> 180.dp
+                maxHeight < 600.dp -> 220.dp
+                else -> 250.dp
             }
 
-            Text(
-                text = stringResource(R.string.name_label, lieu.nom),
-                style = MaterialTheme.typography.titleLarge
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Text(stringResource(R.string.description_label, lieu.description))
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Text(stringResource(R.string.address_label, lieu.adresse))
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            Column(
+                modifier = Modifier
+                    .padding(16.dp)
+                    .fillMaxSize()
+                    .verticalScroll(scrollState)
             ) {
-                Button(
-                    onClick = {
-                        navController.navigate(
-                            Routes.FormLieuModifier.createRoute(lieu.id)
+                if (lieu == null) {
+                    Text(stringResource(R.string.place_not_found))
+                    return@Column
+                }
+
+                // Photo du lieu
+                if (lieu.imageUrl.isNotBlank()) {
+                    val bitmap = remember(lieu.imageUrl) {
+                        BitmapFactory.decodeFile(lieu.imageUrl)
+                    }
+
+                    bitmap?.let {
+                        Image(
+                            bitmap = it.asImageBitmap(),
+                            contentDescription = "Photo du lieu",
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(photoHeight)
                         )
-                    },
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text("Modifier")
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
                 }
+
+                Text(
+                    text = stringResource(R.string.name_label, lieu.nom),
+                    style = MaterialTheme.typography.titleLarge
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(stringResource(R.string.description_label, lieu.description))
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(stringResource(R.string.address_label, lieu.adresse))
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Button(
+                        onClick = {
+                            navController.navigate(
+                                Routes.FormLieuModifier.createRoute(lieu.id)
+                            )
+                        },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text("Modifier")
+                    }
+
+                    Button(
+                        onClick = {
+                            lieuxViewModel.supprimerLieu(lieu.id)
+                            navController.popBackStack()
+                        },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text(stringResource(R.string.delete))
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
 
                 Button(
                     onClick = {
-                        lieuxViewModel.supprimerLieu(lieu.id)
-                        navController.popBackStack()
+                        val lienMaps =
+                            if (lieu.latitude != 0.0 && lieu.longitude != 0.0)
+                                "https://www.google.com/maps/search/?api=1&query=${lieu.latitude},${lieu.longitude}"
+                            else
+                                "https://www.google.com/maps"
+
+                        val message = buildString {
+                            append("Lieu : ${lieu.nom}\n")
+                            if (lieu.description.isNotBlank()) append("Description : ${lieu.description}\n")
+                            if (lieu.adresse.isNotBlank()) append("Adresse : ${lieu.adresse}\n")
+                            append("Carte : $lienMaps")
+                        }
+
+                        val intent = Intent(Intent.ACTION_SEND).apply {
+                            type = "text/plain"
+                            putExtra(Intent.EXTRA_SUBJECT, "Lieu à visiter : ${lieu.nom}")
+                            putExtra(Intent.EXTRA_TEXT, message)
+                        }
+
+                        context.startActivity(Intent.createChooser(intent, "Partager"))
                     },
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text(stringResource(R.string.delete))
-                }
-            }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Button(
-                onClick = {
-                    val lienMaps =
-                        if (lieu.latitude != 0.0 && lieu.longitude != 0.0)
-                            "https://www.google.com/maps/search/?api=1&query=${lieu.latitude},${lieu.longitude}"
-                        else
-                            "https://www.google.com/maps"
-
-                    val message = buildString {
-                        append("Lieu : ${lieu.nom}\n")
-                        if (lieu.description.isNotBlank()) append("Description : ${lieu.description}\n")
-                        if (lieu.adresse.isNotBlank()) append("Adresse : ${lieu.adresse}\n")
-                        append("Carte : $lienMaps")
-                    }
-
-                    val intent = Intent(Intent.ACTION_SEND).apply {
-                        type = "text/plain"
-                        putExtra(Intent.EXTRA_SUBJECT, "Lieu à visiter : ${lieu.nom}")
-                        putExtra(Intent.EXTRA_TEXT, message)
-                    }
-
-                    context.startActivity(Intent.createChooser(intent, "Partager"))
-                },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Partager")
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Google Maps
-            if (lieu.latitude != 0.0 && lieu.longitude != 0.0) {
-                val positionLieu = LatLng(lieu.latitude, lieu.longitude)
-                val cameraPositionState = rememberCameraPositionState {
-                    position = CameraPosition.fromLatLngZoom(positionLieu, 10f)
-                }
-
-                GoogleMap(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(250.dp),
-                    cameraPositionState = cameraPositionState
-                ) {
-                    Marker(
-                        state = MarkerState(position = positionLieu),
-                        title = lieu.nom,
-                        snippet = lieu.description
-                    )
+                    Text("Partager")
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                Button(
-                    onClick = {
-                        val uri = Uri.parse(
-                            "geo:${lieu.latitude},${lieu.longitude}?q=${lieu.latitude},${lieu.longitude}(${Uri.encode(lieu.nom)})"
-                        )
-                        val intent = Intent(Intent.ACTION_VIEW, uri)
-                        context.startActivity(intent)
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(stringResource(R.string.open_in_google_maps))
-                }
-            } else {
-                Button(
-                    onClick = {
-                        val uri = Uri.parse("geo:0,0")
-                        val intent = Intent(Intent.ACTION_VIEW, uri)
-                        context.startActivity(intent)
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(stringResource(R.string.open_google_maps))
-                }
-            }
+                // Google Maps
+                if (lieu.latitude != 0.0 && lieu.longitude != 0.0) {
+                    val positionLieu = LatLng(lieu.latitude, lieu.longitude)
+                    val cameraPositionState = rememberCameraPositionState {
+                        position = CameraPosition.fromLatLngZoom(positionLieu, 10f)
+                    }
 
-            Spacer(Modifier.height(24.dp))
+                    GoogleMap(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(mapHeight),
+                        cameraPositionState = cameraPositionState
+                    ) {
+                        Marker(
+                            state = MarkerState(position = positionLieu),
+                            title = lieu.nom,
+                            snippet = lieu.description
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Button(
+                        onClick = {
+                            val uri = Uri.parse(
+                                "geo:${lieu.latitude},${lieu.longitude}?q=${lieu.latitude},${lieu.longitude}(${Uri.encode(lieu.nom)})"
+                            )
+                            val intent = Intent(Intent.ACTION_VIEW, uri)
+                            context.startActivity(intent)
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(stringResource(R.string.open_in_google_maps))
+                    }
+                } else {
+                    Button(
+                        onClick = {
+                            val uri = Uri.parse("geo:0,0")
+                            val intent = Intent(Intent.ACTION_VIEW, uri)
+                            context.startActivity(intent)
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(stringResource(R.string.open_google_maps))
+                    }
+                }
+
+                Spacer(Modifier.height(24.dp))
+            }
         }
     }
 }
