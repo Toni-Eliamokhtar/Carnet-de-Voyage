@@ -1,0 +1,6 @@
+Meduim Phone 
+API 36.0
+Android 16.0 ("Baklava") | x86_64
+Resolution (px): 1080 x 2400
+Resolution (dp) : 412 x 915
+Density: 420 dpi
