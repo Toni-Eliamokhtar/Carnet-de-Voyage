@@ -53,6 +53,7 @@ fun EcranListeLieux(
         LazyColumn(
             modifier = Modifier
                 .padding(padding)
+                .windowInsetsPadding(WindowInsets.safeDrawing)
                 .padding(16.dp)
                 .fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(8.dp)

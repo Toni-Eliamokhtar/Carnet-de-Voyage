@@ -165,169 +165,181 @@ fun EcranFormLieu(
             )
         }
     ) { padding ->
-        Column(
+        BoxWithConstraints(
             modifier = Modifier
-                .padding(padding)
-                .padding(16.dp)
                 .fillMaxSize()
-                .verticalScroll(scrollState)
+                .padding(padding)
+                .windowInsetsPadding(WindowInsets.safeDrawing)
         ) {
-            OutlinedTextField(
-                value = nom,
-                onValueChange = {
-                    nom = it
-                    if (it.isNotBlank()) errorNom = null
-                },
-                label = { Text(stringResource(R.string.place_name_required_star)) },
-                modifier = Modifier.fillMaxWidth(),
-                isError = errorNom != null
-            )
-            if (errorNom != null) {
-                Text(
-                    text = errorNom!!,
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodySmall
-                )
+            val previewHeight = when {
+                maxHeight < 420.dp -> 140.dp
+                maxHeight < 600.dp -> 180.dp
+                else -> 220.dp
             }
 
-            Spacer(Modifier.height(8.dp))
-
-            OutlinedTextField(
-                value = description,
-                onValueChange = { description = it },
-                label = { Text(stringResource(R.string.description_optional)) },
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Spacer(Modifier.height(8.dp))
-
-            OutlinedTextField(
-                value = adresse,
-                onValueChange = {
-                    adresse = it
-                    errorAdresse = null
-                    latitude = null
-                    longitude = null
-                },
-                label = { Text(stringResource(R.string.address_required_if_no_position)) },
-                modifier = Modifier.fillMaxWidth(),
-                isError = errorAdresse != null
-            )
-            if (errorAdresse != null) {
-                Text(
-                    text = errorAdresse!!,
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodySmall
-                )
-            }
-
-            Spacer(Modifier.height(12.dp))
-
-            // Photo
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            Column(
+                modifier = Modifier
+                    .padding(16.dp)
+                    .fillMaxSize()
+                    .verticalScroll(scrollState)
             ) {
-                OutlinedButton(
-                    onClick = { lancerCamera.launch(null) },
-                    modifier = Modifier.weight(1f)
-                ) { Text("Caméra") }
-
-                OutlinedButton(
-                    onClick = { choisirGalerie.launch("image/*") },
-                    modifier = Modifier.weight(1f)
-                ) { Text("Galerie") }
-            }
-
-            if (messageErreurImage != null) {
-                Spacer(Modifier.height(6.dp))
-                Text(
-                    text = messageErreurImage!!,
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodySmall
+                OutlinedTextField(
+                    value = nom,
+                    onValueChange = {
+                        nom = it
+                        if (it.isNotBlank()) errorNom = null
+                    },
+                    label = { Text(stringResource(R.string.place_name_required_star)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    isError = errorNom != null
                 )
-            }
-
-            imagePreviewBitmap?.let {
-                Spacer(Modifier.height(10.dp))
-                Image(
-                    bitmap = it.asImageBitmap(),
-                    contentDescription = "Aperçu de la photo",
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(220.dp)
-                )
-            }
-
-            Spacer(Modifier.height(12.dp))
-
-            // Localisation
-            Button(
-                onClick = {
-                    val permissionOk = ContextCompat.checkSelfPermission(
-                        context,
-                        Manifest.permission.ACCESS_FINE_LOCATION
-                    ) == PackageManager.PERMISSION_GRANTED
-
-                    if (permissionOk) lirePositionActuelle()
-                    else demandePermissionLocalisation.launch(Manifest.permission.ACCESS_FINE_LOCATION)
-                },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(stringResource(R.string.use_my_current_position))
-            }
-
-            if (messageErreurLocalisation != null) {
-                Spacer(Modifier.height(6.dp))
-                Text(
-                    text = messageErreurLocalisation!!,
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodySmall
-                )
-            }
-
-            Spacer(Modifier.height(12.dp))
-
-            // Submit
-            Button(
-                onClick = {
-                    if (nom.isBlank()) {
-                        errorNom = context.getString(R.string.error_place_name_required)
-                        return@Button
-                    }
-
-                    if (latitude == null && adresse.isBlank()) {
-                        errorAdresse = context.getString(R.string.error_address_or_position_required)
-                        return@Button
-                    }
-
-                    if (modeAjout && imagePath.isBlank()) {
-                        messageErreurImage = "Une photo est obligatoire."
-                        return@Button
-                    }
-
-                    val lieu = Lieu(
-                        id = if (modeAjout) "" else (lieuId ?: ""),
-                        nom = nom,
-                        description = description,
-                        latitude = latitude ?: 0.0,
-                        longitude = longitude ?: 0.0,
-                        adresse = adresse,
-                        imageUrl = imagePath,
-                        userId = "demo"
+                if (errorNom != null) {
+                    Text(
+                        text = errorNom!!,
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall
                     )
+                }
 
-                    if (modeAjout) lieuxViewModel.ajouterLieu(lieu)
-                    else lieuxViewModel.modifierLieu(lieu)
+                Spacer(Modifier.height(8.dp))
 
-                    navController.popBackStack()
-                },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(texteBouton)
+                OutlinedTextField(
+                    value = description,
+                    onValueChange = { description = it },
+                    label = { Text(stringResource(R.string.description_optional)) },
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(Modifier.height(8.dp))
+
+                OutlinedTextField(
+                    value = adresse,
+                    onValueChange = {
+                        adresse = it
+                        errorAdresse = null
+                        latitude = null
+                        longitude = null
+                    },
+                    label = { Text(stringResource(R.string.address_required_if_no_position)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    isError = errorAdresse != null
+                )
+                if (errorAdresse != null) {
+                    Text(
+                        text = errorAdresse!!,
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+
+                Spacer(Modifier.height(12.dp))
+
+                // Photo
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    OutlinedButton(
+                        onClick = { lancerCamera.launch(null) },
+                        modifier = Modifier.weight(1f)
+                    ) { Text("Caméra") }
+
+                    OutlinedButton(
+                        onClick = { choisirGalerie.launch("image/*") },
+                        modifier = Modifier.weight(1f)
+                    ) { Text("Galerie") }
+                }
+
+                if (messageErreurImage != null) {
+                    Spacer(Modifier.height(6.dp))
+                    Text(
+                        text = messageErreurImage!!,
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+
+                imagePreviewBitmap?.let {
+                    Spacer(Modifier.height(10.dp))
+                    Image(
+                        bitmap = it.asImageBitmap(),
+                        contentDescription = "Aperçu de la photo",
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(previewHeight)
+                    )
+                }
+
+                Spacer(Modifier.height(12.dp))
+
+                // Localisation
+                Button(
+                    onClick = {
+                        val permissionOk = ContextCompat.checkSelfPermission(
+                            context,
+                            Manifest.permission.ACCESS_FINE_LOCATION
+                        ) == PackageManager.PERMISSION_GRANTED
+
+                        if (permissionOk) lirePositionActuelle()
+                        else demandePermissionLocalisation.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(stringResource(R.string.use_my_current_position))
+                }
+
+                if (messageErreurLocalisation != null) {
+                    Spacer(Modifier.height(6.dp))
+                    Text(
+                        text = messageErreurLocalisation!!,
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+
+                Spacer(Modifier.height(12.dp))
+
+                // Submit
+                Button(
+                    onClick = {
+                        if (nom.isBlank()) {
+                            errorNom = context.getString(R.string.error_place_name_required)
+                            return@Button
+                        }
+
+                        if (latitude == null && adresse.isBlank()) {
+                            errorAdresse = context.getString(R.string.error_address_or_position_required)
+                            return@Button
+                        }
+
+                        if (modeAjout && imagePath.isBlank()) {
+                            messageErreurImage = "Une photo est obligatoire."
+                            return@Button
+                        }
+
+                        val lieu = Lieu(
+                            id = if (modeAjout) "" else (lieuId ?: ""),
+                            nom = nom,
+                            description = description,
+                            latitude = latitude ?: 0.0,
+                            longitude = longitude ?: 0.0,
+                            adresse = adresse,
+                            imageUrl = imagePath,
+                            userId = "demo"
+                        )
+
+                        if (modeAjout) lieuxViewModel.ajouterLieu(lieu)
+                        else lieuxViewModel.modifierLieu(lieu)
+
+                        navController.popBackStack()
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(texteBouton)
+                }
+
+                Spacer(Modifier.height(24.dp))
             }
-
-            Spacer(Modifier.height(24.dp))
         }
     }
 }
