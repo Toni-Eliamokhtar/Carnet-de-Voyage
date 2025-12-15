@@ -10,6 +10,10 @@
     <string name="see_places">Voir les lieux</string>
     <string name="profile_settings">Profil / Paramètres</string>
     <string name="logout">Se déconnecter</string>
+    <string name="dashboard_title">Tableau de bord</string>
+    <string name="dashboard_total_places">Nombre de lieux : %1$d</string>
+    <string name="dashboard_last_added">Dernier ajout : %1$s</string>
+
 
     <!-- Connexion -->
     <string name="auth_title">Connexion</string>

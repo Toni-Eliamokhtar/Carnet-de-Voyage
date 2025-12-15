@@ -8,6 +8,10 @@
     <string name="see_places">View places</string>
     <string name="profile_settings">Profile / Settings</string>
     <string name="logout">Log out</string>
+    <string name="dashboard_title">Dashboard</string>
+    <string name="dashboard_total_places">Total places: %1$d</string>
+    <string name="dashboard_last_added">Last added: %1$s</string>
+
 
     <!-- Auth -->
     <string name="auth_title">Login</string>
