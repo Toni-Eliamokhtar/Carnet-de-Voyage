@@ -10,6 +10,7 @@ import android.os.Build
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -33,11 +34,13 @@ import androidx.compose.ui.unit.dp
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
+import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import com.example.travail_pratique_synthese_toni_et_farid.R
 import com.example.travail_pratique_synthese_toni_et_farid.Viewmodel.AuthViewModel
 import com.example.travail_pratique_synthese_toni_et_farid.routes.Routes
+
 
 private const val PROFIL_NOTIFICATION_CHANNEL_ID = "profil_notifications"
 private const val PROFIL_NOTIFICATION_GROUP_KEY = "profil_notification_group"
@@ -78,6 +81,9 @@ fun EcranProfilParametres(
     var langue by rememberSaveable { mutableStateOf("fr") }
     var notificationsActives by rememberSaveable { mutableStateOf(true) }
 
+    var langueModifieeLocalement by rememberSaveable { mutableStateOf(false) }
+    var langueInitiale by rememberSaveable { mutableStateOf("") }
+
     // Photo locale (caméra, non persistée)
     var photoBitmap by remember { mutableStateOf<Bitmap?>(null) }
 
@@ -91,8 +97,28 @@ fun EcranProfilParametres(
         profilState?.let {
             nomAffiche = it.nomAffiche
             courriel = it.courriel
-            langue = it.langue
+
+            if (langueInitiale.isBlank()) {
+                langueInitiale = it.langue
+            }
+
+            if (!langueModifieeLocalement) {
+                langue = it.langue
+            }
+
             notificationsActives = it.notificationsActives
+        }
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            if (langue != langueInitiale && langueInitiale.isNotBlank()) {
+                AppCompatDelegate.setApplicationLocales(
+                    LocaleListCompat.forLanguageTags(
+                        if (langueInitiale == "fr") "fr-FR" else "en-US"
+                    )
+                )
+            }
         }
     }
 
@@ -121,6 +147,15 @@ fun EcranProfilParametres(
             Toast.makeText(context, context.getString(R.string.name_cannot_be_empty), Toast.LENGTH_SHORT).show()
             return
         }
+
+        AppCompatDelegate.setApplicationLocales(
+            LocaleListCompat.forLanguageTags(
+                if (langue == "fr") "fr-FR" else "en-US"
+            )
+        )
+
+        langueInitiale = langue
+        langueModifieeLocalement = false
 
         viewModel.mettreAJourProfil(
             nomAffiche = nomAffiche,
@@ -281,16 +316,28 @@ fun EcranProfilParametres(
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    TextButton(onClick = { langue = "fr" }) {
+                    TextButton(onClick = {
+                        langue = "fr"
+                        langueModifieeLocalement = true
+                        AppCompatDelegate.setApplicationLocales(
+                            LocaleListCompat.forLanguageTags("fr-FR")
+                        )
+                    }) {
                         Text(stringResource(R.string.lang_fr_short))
                     }
-                    TextButton(onClick = { langue = "en" }) {
+                    TextButton(onClick = {
+                        langue = "en"
+                        langueModifieeLocalement = true
+                        AppCompatDelegate.setApplicationLocales(
+                            LocaleListCompat.forLanguageTags("en-US")
+                        )
+                    }) {
                         Text(stringResource(R.string.lang_en_short))
                     }
                 }
 
                 Text(
-                    text = if (langue == "fr")
+                    text = if (langue.startsWith("fr"))
                         stringResource(R.string.current_language_french)
                     else
                         stringResource(R.string.current_language_english)
