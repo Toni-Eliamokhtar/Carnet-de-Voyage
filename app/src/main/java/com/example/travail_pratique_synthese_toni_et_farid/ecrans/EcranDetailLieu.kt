@@ -57,7 +57,7 @@ fun EcranDetailLieu(
             }
 
             // Ici je montre les informations principales du lieu
-            // Je vais ajouter la mini-carte Google Maps et la photo plus tard
+            // Je vais ajouter la photo plus tard
             Text(text = "Nom : ${lieu.nom}", style = MaterialTheme.typography.titleLarge)
             Spacer(modifier = Modifier.height(8.dp))
 
