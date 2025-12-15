@@ -50,45 +50,50 @@ fun EcranListeLieux(
             )
         }
     ) { padding ->
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .padding(padding)
                 .padding(16.dp)
-                .fillMaxSize()
+                .fillMaxSize(),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Button(
-                onClick = { navController.navigate(Routes.FormLieu.route) },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Ajouter")
-            }
+            item {
+                Button(
+                    onClick = { navController.navigate(Routes.FormLieu.route) },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Ajouter")
+                }
 
-            Spacer(Modifier.height(16.dp))
+                Spacer(Modifier.height(8.dp))
+            }
 
             if (lieux.isEmpty()) {
-                Text(stringResource(R.string.no_places_yet))
+                item {
+                    Text(stringResource(R.string.no_places_yet))
+                }
             } else {
-                LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    items(lieux) { lieu ->
-                        LieuItem(
-                            lieu = lieu,
-                            onSupprimer = {
-                                if (lieu.id.isNotBlank()) lieuxViewModel.supprimerLieu(lieu.id)
-                            },
-                            onVoirDetail = {
-                                if (lieu.id.isNotBlank()) {
-                                    navController.navigate(Routes.DetailLieu.createRoute(lieu.id))
-                                }
-                            },
-                            onModifier = {
-                                if (lieu.id.isNotBlank()) {
-                                    navController.navigate(Routes.FormLieuModifier.createRoute(lieu.id))
-                                }
+                items(lieux) { lieu ->
+                    LieuItem(
+                        lieu = lieu,
+                        onSupprimer = {
+                            if (lieu.id.isNotBlank()) lieuxViewModel.supprimerLieu(lieu.id)
+                        },
+                        onVoirDetail = {
+                            if (lieu.id.isNotBlank()) {
+                                navController.navigate(Routes.DetailLieu.createRoute(lieu.id))
                             }
-                        )
-                    }
+                        },
+                        onModifier = {
+                            if (lieu.id.isNotBlank()) {
+                                navController.navigate(Routes.FormLieuModifier.createRoute(lieu.id))
+                            }
+                        }
+                    )
                 }
             }
+
+            item { Spacer(Modifier.height(24.dp)) }
         }
     }
 }
