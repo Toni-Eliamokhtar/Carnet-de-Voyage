@@ -73,4 +73,10 @@
     <string name="local_notifications">Local notifications</string>
     <string name="enable_notifications">Enable notifications</string>
     <string name="test_notification">Test a notification</string>
+
+    <!-- Bottom navigation bar -->
+    <string name="nav_home">Home</string>
+    <string name="nav_places">Places</string>
+    <string name="nav_profile">Profile</string>
+
 </resources>
