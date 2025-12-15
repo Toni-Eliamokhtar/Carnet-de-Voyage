@@ -21,12 +21,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.travail_pratique_synthese_toni_et_farid.Modele.Lieu
+import com.example.travail_pratique_synthese_toni_et_farid.R
 import com.example.travail_pratique_synthese_toni_et_farid.Viewmodel.LieuxViewModel
 import com.example.travail_pratique_synthese_toni_et_farid.routes.Routes
 import com.google.android.gms.location.LocationServices
@@ -76,14 +78,14 @@ fun EcranListeLieux(
                 localisation?.let {
                     latitude = it.latitude
                     longitude = it.longitude
-                    adresse = "Position actuelle"   // on remplace l'adresse par la position actuelle
+                    adresse = context.getString(R.string.current_position)   // on remplace l'adresse par la position actuelle
                     messageErreurLocalisation = null
                 } ?: run {
-                    messageErreurLocalisation = "Impossible de récupérer la localisation"
+                    messageErreurLocalisation = context.getString(R.string.error_location_unavailable)
                 }
             }
         } else {
-            messageErreurLocalisation = "Permission de localisation refusée"
+            messageErreurLocalisation = context.getString(R.string.error_location_permission_denied)
         }
     }
 
@@ -97,10 +99,10 @@ fun EcranListeLieux(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text("Liste des lieux", style = MaterialTheme.typography.titleLarge)
+            Text(stringResource(R.string.places_list_title), style = MaterialTheme.typography.titleLarge)
 
             Button(onClick = { navController.popBackStack() }) {
-                Text("Retour")
+                Text(stringResource(R.string.back))
             }
         }
 
@@ -116,7 +118,7 @@ fun EcranListeLieux(
                     errorNom = null
                 }
             },
-            label = { Text("Nom du lieu*") },
+            label = { Text(stringResource(R.string.place_name_required_star)) },
             modifier = Modifier.fillMaxWidth(),
             isError = errorNom != null
         )
@@ -134,7 +136,7 @@ fun EcranListeLieux(
         OutlinedTextField(
             value = description,
             onValueChange = { description = it },
-            label = { Text("Description (optionnel)") },
+            label = { Text(stringResource(R.string.description_optional)) },
             modifier = Modifier.fillMaxWidth()
         )
 
@@ -150,7 +152,7 @@ fun EcranListeLieux(
                 latitude = null
                 longitude = null
             },
-            label = { Text("Adresse (obligatoire si pas de position)") },
+            label = { Text(stringResource(R.string.address_required_if_no_position)) },
             modifier = Modifier.fillMaxWidth(),
             isError = errorAdresse != null
         )
@@ -182,11 +184,10 @@ fun EcranListeLieux(
                         localisation?.let {
                             latitude = it.latitude
                             longitude = it.longitude
-                            adresse = "Position actuelle"
+                            adresse = context.getString(R.string.current_position)
                             messageErreurLocalisation = null
                         } ?: run {
-                            messageErreurLocalisation =
-                                "Impossible de récupérer la localisation"
+                            messageErreurLocalisation = context.getString(R.string.error_location_unavailable)
                         }
                     }
                 } else {
@@ -198,15 +199,15 @@ fun EcranListeLieux(
             },
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Utiliser ma position actuelle")
+            Text(stringResource(R.string.use_my_current_position))
         }
 
         // Affichage de la latitude / longitude si disponibles
         latitude?.let { lat ->
             longitude?.let { lon ->
                 Spacer(Modifier.height(8.dp))
-                Text(text = "Latitude : $lat")
-                Text(text = "Longitude : $lon")
+                Text(text = stringResource(R.string.latitude_label, lat.toString()))
+                Text(text = stringResource(R.string.longitude_label, lon.toString()))
             }
         }
 
@@ -227,13 +228,13 @@ fun EcranListeLieux(
             onClick = {
                 if (nom.isBlank()) {
                     // on empêche l'ajout si le nom est vide
-                    errorNom = "Le nom du lieu est obligatoire."
+                    errorNom = context.getString(R.string.error_place_name_required)
                     return@Button
                 }
 
                 // on empêche aussi si ni position ni adresse n'ont été fournis
                 if (latitude == null && adresse.isBlank()) {
-                    errorAdresse = "Vous devez entrer une adresse ou utiliser votre position."
+                    errorAdresse = context.getString(R.string.error_address_or_position_required)
                     return@Button
                 }
 
@@ -266,14 +267,14 @@ fun EcranListeLieux(
             },
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Ajouter ce lieu")
+            Text(stringResource(R.string.add_this_place))
         }
 
         Spacer(Modifier.height(16.dp))
 
         // 🔹 Affichage de la liste des lieux
         if (lieux.isEmpty()) {
-            Text("Aucun lieu pour le moment.")
+            Text(stringResource(R.string.no_places_yet))
         } else {
             LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 items(lieux) { lieu ->
@@ -313,12 +314,12 @@ fun LieuItem(
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
             Text(
-                text = lieu.nom.ifBlank { "Sans nom" },
+                text = lieu.nom.ifBlank { stringResource(R.string.unnamed_place) },
                 style = MaterialTheme.typography.titleMedium
             )
             Spacer(Modifier.height(4.dp))
             Text(
-                text = lieu.description.ifBlank { "Aucune description" },
+                text = lieu.description.ifBlank { stringResource(R.string.no_description) },
                 style = MaterialTheme.typography.bodyMedium,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
@@ -326,7 +327,7 @@ fun LieuItem(
             Spacer(Modifier.height(8.dp))
             // Bouton de suppression du lieu
             Button(onClick = onSupprimer) {
-                Text("Supprimer")
+                Text(stringResource(R.string.delete))
             }
         }
     }

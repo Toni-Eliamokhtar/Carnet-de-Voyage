@@ -1,4 +1,78 @@
 <resources>
-    <string name="app_name">TP_Synthese_Toni_Farid</string>
+
+    <string name="app_name">TPSynthese</string>
     <string name="google_maps_key">AIzaSyDKkJFpS_SJuzkxzdLlZgQk_hOHf5P_gO4</string>
+
+    <!-- Accueil -->
+    <string name="home_title_places">Accueil - Lieux à visiter</string>
+    <string name="welcome_user">Bienvenue : %1$s</string>
+    <string name="unknown_user">Utilisateur inconnu</string>
+    <string name="see_places">Voir les lieux</string>
+    <string name="profile_settings">Profil / Paramètres</string>
+    <string name="logout">Se déconnecter</string>
+
+    <!-- Connexion -->
+    <string name="auth_title">Connexion</string>
+    <string name="email">Courriel</string>
+    <string name="password">Mot de passe</string>
+    <string name="sign_in">Se connecter</string>
+    <string name="create_account">Créer un compte</string>
+    <string name="logging_in">Connexion en cours…</string>
+    <string name="email_not_verified_temp">Courriel non vérifié (plus tard on gérera ça)</string>
+
+    <!-- Liste lieux -->
+    <string name="places_list_title">Liste des lieux</string>
+    <string name="place_name_required_star">Nom du lieu*</string>
+    <string name="description_optional">Description (optionnel)</string>
+    <string name="address_required_if_no_position">Adresse (obligatoire si pas de position)</string>
+    <string name="use_my_current_position">Utiliser ma position actuelle</string>
+    <string name="current_position">Position actuelle</string>
+    <string name="latitude_label">Latitude : %1$s</string>
+    <string name="longitude_label">Longitude : %1$s</string>
+    <string name="error_location_unavailable">Impossible de récupérer la localisation</string>
+    <string name="error_location_permission_denied">Permission de localisation refusée</string>
+    <string name="error_place_name_required">Le nom du lieu est obligatoire.</string>
+    <string name="error_address_or_position_required">Vous devez entrer une adresse ou utiliser votre position.</string>
+    <string name="add_this_place">Ajouter ce lieu</string>
+    <string name="no_places_yet">Aucun lieu pour le moment.</string>
+    <string name="unnamed_place">Sans nom</string>
+    <string name="no_description">Aucune description</string>
+    <string name="delete">Supprimer</string>
+    <string name="back">Retour</string>
+
+    <!-- Détail lieu -->
+    <string name="place_detail_title">Détail du lieu</string>
+    <string name="place_not_found">Lieu introuvable.</string>
+    <string name="name_label">Nom : %1$s</string>
+    <string name="description_label">Description : %1$s</string>
+    <string name="address_label">Adresse : %1$s</string>
+    <string name="open_in_google_maps">Ouvrir dans Google Maps</string>
+    <string name="open_google_maps">Ouvrir Google Maps</string>
+    <string name="place_fallback">Lieu</string>
+
+    <!-- Profil / Paramètres -->
+    <string name="profile_settings_title">Profil / Paramètres</string>
+    <string name="profile_notifications_channel_name">Notifications profil</string>
+    <string name="name_cannot_be_empty">Le nom ne peut pas être vide</string>
+    <string name="profile_updated">Profil mis à jour</string>
+    <string name="profile_update_error">Erreur lors de la mise à jour</string>
+    <string name="enable_local_notifications_first">Active les notifications locales d\'abord</string>
+    <string name="profile_notification_title">Notification de profil #%1$d</string>
+    <string name="profile_notification_text">Ceci est une notification locale de test.</string>
+    <string name="profile_notifications_summary_title">Notifications de profil</string>
+    <string name="profile_notifications_summary_text">Vous avez %1$d notification(s) de profil.</string>
+    <string name="profile_photo_cd">Photo de profil</string>
+    <string name="photo_placeholder">Photo</string>
+    <string name="take_picture">Prendre une photo</string>
+    <string name="display_name">Nom affiché</string>
+    <string name="unknown_email">Courriel inconnu</string>
+    <string name="save_profile">Sauvegarder le profil</string>
+    <string name="language">Langue</string>
+    <string name="lang_fr_short">FR</string>
+    <string name="lang_en_short">EN</string>
+    <string name="current_language_french">Langue actuelle : Français</string>
+    <string name="current_language_english">Langue actuelle : Anglais</string>
+    <string name="local_notifications">Notifications locales</string>
+    <string name="enable_notifications">Activer les notifications</string>
+    <string name="test_notification">Tester une notification</string>
 </resources>

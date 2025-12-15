@@ -7,8 +7,10 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.example.travail_pratique_synthese_toni_et_farid.R
 import com.example.travail_pratique_synthese_toni_et_farid.Viewmodel.LieuxViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -40,7 +42,7 @@ fun EcranDetailLieu(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Détail du lieu") }
+                title = { Text(stringResource(R.string.place_detail_title)) }
             )
         }
     ) { padding ->
@@ -52,19 +54,22 @@ fun EcranDetailLieu(
             if (lieu == null) {
                 // Si l'id ne correspond à aucun lieu, on affiche ça
                 // (au cas où il y a un problème avec des données supprimées par exemple)
-                Text("Lieu introuvable.")
+                Text(stringResource(R.string.place_not_found))
                 return@Column
             }
 
             // Ici je montre les informations principales du lieu
-            // Je vais ajouter la photo plus tard
-            Text(text = "Nom : ${lieu.nom}", style = MaterialTheme.typography.titleLarge)
+            // Je vais ajouter la mini-carte Google Maps et la photo plus tard
+            Text(
+                text = stringResource(R.string.name_label, lieu.nom),
+                style = MaterialTheme.typography.titleLarge
+            )
             Spacer(modifier = Modifier.height(8.dp))
 
-            Text(text = "Description : ${lieu.description}")
+            Text(text = stringResource(R.string.description_label, lieu.description))
             Spacer(modifier = Modifier.height(8.dp))
 
-            Text(text = "Adresse : ${lieu.adresse}")
+            Text(text = stringResource(R.string.address_label, lieu.adresse))
             Spacer(modifier = Modifier.height(16.dp))
 
             // Mini-carte Google Maps centrée sur les coordonnées du lieu (si on a une vraie position)
@@ -82,7 +87,7 @@ fun EcranDetailLieu(
                 ) {
                     Marker(
                         state = MarkerState(position = positionLieu),
-                        title = lieu.nom.ifBlank { "Lieu" },
+                        title = lieu.nom.ifBlank { stringResource(R.string.place_fallback) },
                         snippet = lieu.description
                     )
                 }
@@ -104,7 +109,7 @@ fun EcranDetailLieu(
                     },
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("Ouvrir dans Google Maps")
+                    Text(stringResource(R.string.open_in_google_maps))
                 }
             } else {
                 // Si on n'a pas de position exacte, on ouvre juste Google Maps sans chercher l'adresse
@@ -118,14 +123,14 @@ fun EcranDetailLieu(
                     },
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("Ouvrir Google Maps")
+                    Text(stringResource(R.string.open_google_maps))
                 }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
             Button(onClick = { navController.popBackStack() }) {
-                Text("Retour")
+                Text(stringResource(R.string.back))
             }
         }
     }
