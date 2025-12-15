@@ -80,7 +80,7 @@ fun NavigationGraph(
             modifier = Modifier.padding(paddingValues)
         ) {
 
-        // Écran de connexion
+            // Écran de connexion
             composable(Routes.Connexion.route) {
                 EcranConnexion(
                     navController = navController,
@@ -123,20 +123,20 @@ fun NavigationGraph(
                     lieuId = lieuId
                 )
             }
-        }
 
-        // Écran de gestion de lieux (ajout)
-        composable(Routes.FormLieu.route) {
-            EcranFormLieu(navController = navController, lieuId = null)
-        }
+            // Écran de gestion de lieux (ajout)
+            composable(Routes.FormLieu.route) {
+                EcranFormLieu(navController = navController, lieuId = null)
+            }
 
-        // Écran de gestion de lieux (modification)
-        composable(
-            route = Routes.FormLieuModifier.route,
-            arguments = listOf(navArgument("lieuId") { type = NavType.StringType })
-        ) { backStackEntry ->
-            val lieuId = backStackEntry.arguments?.getString("lieuId")
-            EcranFormLieu(navController = navController, lieuId = lieuId)
+            // Écran de gestion de lieux (modification)
+            composable(
+                route = Routes.FormLieuModifier.route,
+                arguments = listOf(navArgument("lieuId") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val lieuId = backStackEntry.arguments?.getString("lieuId")
+                EcranFormLieu(navController = navController, lieuId = lieuId)
+            }
         }
     }
 }
