@@ -121,6 +121,36 @@ fun EcranDetailLieu(
                 }
             }
 
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Button(
+                onClick = {
+                    val lienMaps = if (lieu.latitude != 0.0 && lieu.longitude != 0.0) {
+                        "https://www.google.com/maps/search/?api=1&query=${lieu.latitude},${lieu.longitude}"
+                    } else {
+                        "https://www.google.com/maps"
+                    }
+
+                    val message = buildString {
+                        append("Lieu : ${lieu.nom}\n")
+                        if (lieu.description.isNotBlank()) append("Description : ${lieu.description}\n")
+                        if (lieu.adresse.isNotBlank()) append("Adresse : ${lieu.adresse}\n")
+                        append("Carte : $lienMaps")
+                    }
+
+                    val intent = Intent(Intent.ACTION_SEND).apply {
+                        type = "text/plain"
+                        putExtra(Intent.EXTRA_SUBJECT, "Lieu à visiter : ${lieu.nom}")
+                        putExtra(Intent.EXTRA_TEXT, message)
+                    }
+
+                    context.startActivity(Intent.createChooser(intent, "Partager"))
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Partager")
+            }
+
             Spacer(modifier = Modifier.height(16.dp))
 
             // Mini-carte Google Maps centrée sur les coordonnées du lieu (si on a une vraie position)
