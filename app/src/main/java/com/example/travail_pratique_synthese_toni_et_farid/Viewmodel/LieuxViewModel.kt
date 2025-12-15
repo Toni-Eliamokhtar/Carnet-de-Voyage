@@ -10,31 +10,37 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
 /*
-C'est le ViewModel responsable de la gestion des lieux (lecture et écriture dans Firebase)
+ViewModel responsable de la gestion des lieux
+Lecture et écriture des données dans Firebase Realtime Database
  */
 class LieuxViewModel : ViewModel() {
 
-    // Référence vers le noeud "lieux" dans Firebase Realtime Database
+    // Référence vers le noeud "lieux" dans Firebase
     private val db = FirebaseDatabase.getInstance().getReference("lieux")
 
-    // Liste observable de lieux pour l'UI (StateFlow utilisé par Compose)
+    // Liste observable de lieux utilisée par l'interface
     private val _lieux = MutableStateFlow<List<Lieu>>(emptyList())
     val lieux: StateFlow<List<Lieu>> = _lieux
 
+    // Listener Firebase conservé pour pouvoir être retiré proprement
+    private var lieuxListener: ValueEventListener? = null
+
     init {
-        // Dès la création du ViewModel, on commence directe à écouter Firebase
+        // Démarrage de l'écoute en temps réel des données
         observerLieux()
     }
 
-    // Lecture en temps réel des lieux
+    // Écoute en temps réel des lieux dans Firebase
     private fun observerLieux() {
-        db.addValueEventListener(object : ValueEventListener {
+        lieuxListener?.let { db.removeEventListener(it) }
+
+        lieuxListener = object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 val liste = snapshot.children.mapNotNull { enfant ->
                     val lieu = enfant.getValue(Lieu::class.java)
                     val id = enfant.key
                     if (lieu != null && id != null) {
-                        // on force l'id à être la clé Firebase
+                        // L'id Firebase est injecté dans l'objet Lieu
                         lieu.copy(id = id)
                     } else {
                         null
@@ -44,28 +50,38 @@ class LieuxViewModel : ViewModel() {
             }
 
             override fun onCancelled(error: DatabaseError) {
-                // Ici je pourrais logger l'erreur si nécessaire
+                // Erreur de lecture Firebase
             }
-        })
+        }
+
+        db.addValueEventListener(lieuxListener as ValueEventListener)
     }
 
-    // Cette fonction ajoute un lieu dans Firebase
+    // Ajout d'un nouveau lieu dans Firebase
     fun ajouterLieu(lieu: Lieu) {
         val key = db.push().key ?: return
         val nouveauLieu = lieu.copy(id = key)
-
         db.child(key).setValue(nouveauLieu)
-
-        // on met aussi à jour localement pour que l'UI réagisse directe
-        _lieux.value = _lieux.value + nouveauLieu
     }
 
-    // Supprimer un lieu par son id
+    // Mise à jour d'un lieu existant
+    fun modifierLieu(lieu: Lieu) {
+        if (lieu.id.isNotBlank()) {
+            db.child(lieu.id).setValue(lieu)
+        }
+    }
+
+    // Suppression d'un lieu à partir de son identifiant
     fun supprimerLieu(id: String) {
         if (id.isNotEmpty()) {
             db.child(id).removeValue()
-            // Ici on met à jour la liste locale
-            _lieux.value = _lieux.value.filterNot { it.id == id }
         }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        // Nettoyage du listener lors de la destruction du ViewModel
+        lieuxListener?.let { db.removeEventListener(it) }
+        lieuxListener = null
     }
 }
