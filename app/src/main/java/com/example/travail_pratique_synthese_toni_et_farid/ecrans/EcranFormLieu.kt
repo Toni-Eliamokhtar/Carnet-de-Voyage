@@ -28,6 +28,7 @@ import androidx.navigation.NavController
 import com.example.travail_pratique_synthese_toni_et_farid.Modele.Lieu
 import com.example.travail_pratique_synthese_toni_et_farid.R
 import com.example.travail_pratique_synthese_toni_et_farid.Viewmodel.LieuxViewModel
+import com.example.travail_pratique_synthese_toni_et_farid.notifications.NotificationsLieux
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import java.io.File
@@ -328,8 +329,13 @@ fun EcranFormLieu(
                             userId = "demo"
                         )
 
-                        if (modeAjout) lieuxViewModel.ajouterLieu(lieu)
-                        else lieuxViewModel.modifierLieu(lieu)
+                        if (modeAjout) {
+                            lieuxViewModel.ajouterLieu(lieu)
+                            NotificationsLieux.notifierAjout(context, lieu.nom.ifBlank { context.getString(R.string.place_fallback) })
+                        } else {
+                            lieuxViewModel.modifierLieu(lieu)
+                            NotificationsLieux.notifierModification(context, lieu.nom.ifBlank { context.getString(R.string.place_fallback) })
+                        }
 
                         navController.popBackStack()
                     },

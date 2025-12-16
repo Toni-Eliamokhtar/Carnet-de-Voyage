@@ -17,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -25,6 +26,7 @@ import androidx.navigation.NavController
 import com.example.travail_pratique_synthese_toni_et_farid.Modele.Lieu
 import com.example.travail_pratique_synthese_toni_et_farid.R
 import com.example.travail_pratique_synthese_toni_et_farid.Viewmodel.LieuxViewModel
+import com.example.travail_pratique_synthese_toni_et_farid.notifications.NotificationsLieux
 import com.example.travail_pratique_synthese_toni_et_farid.routes.Routes
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -34,6 +36,7 @@ fun EcranListeLieux(
     lieuxViewModel: LieuxViewModel = viewModel()
 ) {
     val lieux by lieuxViewModel.lieux.collectAsState(initial = emptyList())
+    val context = LocalContext.current
 
     Scaffold(
         topBar = {
@@ -78,7 +81,11 @@ fun EcranListeLieux(
                     LieuItem(
                         lieu = lieu,
                         onSupprimer = {
-                            if (lieu.id.isNotBlank()) lieuxViewModel.supprimerLieu(lieu.id)
+                            if (lieu.id.isNotBlank()) {
+                                val nomLieu = lieu.nom.ifBlank { context.getString(R.string.place_fallback) }
+                                lieuxViewModel.supprimerLieu(lieu.id)
+                                NotificationsLieux.notifierSuppression(context, nomLieu)
+                            }
                         },
                         onVoirDetail = {
                             if (lieu.id.isNotBlank()) {
