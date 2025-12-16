@@ -86,4 +86,19 @@
     <string name="nav_places">Places</string>
     <string name="nav_profile">Profile</string>
 
+    <!-- Notifications (Places) -->
+    <string name="lieux_notifications_channel_name">Places notifications</string>
+
+    <string name="lieu_notification_added_title">Place added</string>
+    <string name="lieu_notification_added_text">“%1$s” was added.</string>
+
+    <string name="lieu_notification_updated_title">Place updated</string>
+    <string name="lieu_notification_updated_text">“%1$s” was updated.</string>
+
+    <string name="lieu_notification_deleted_title">Place deleted</string>
+    <string name="lieu_notification_deleted_text">“%1$s” was deleted.</string>
+
+    <string name="lieux_notifications_summary_title">Places notifications</string>
+    <string name="lieux_notifications_summary_text">You have %1$d place notification(s).</string>
+
 </resources>
